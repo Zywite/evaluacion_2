@@ -18,6 +18,7 @@ from tkinter.font import nametofont
 class AplicacionConPestanas(ctk.CTk):
     def __init__(self):
         super().__init__()
+        
 
         # Configuración de la ventana principal
         self.title("Gestión de ingredientes y pedidos")

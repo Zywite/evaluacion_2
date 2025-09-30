@@ -39,10 +39,4 @@ def get_default_menus() -> List[IMenu]:
             precio=1100,
             icono_path="IMG/icono_cola_64x64.png",
         ),
-         CrearMenu(
-            "coca cola",
-            [Ingrediente("Pepsi","unid", 1)],
-            precio=1300,
-            icono_path="IMG/icono_cola_lata_64x64.png",
-        ),
     ]
