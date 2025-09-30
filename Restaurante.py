@@ -21,7 +21,7 @@ class AplicacionConPestanas(ctk.CTk):
 
         # Configuración de la ventana principal
         self.title("Gestión de ingredientes y pedidos")
-        self.geometry("800x700")
+        self.geometry("870x700")
         nametofont("TkHeadingFont").configure(size=14)
         nametofont("TkDefaultFont").configure(size=11)
         # Inicializar el Stock
@@ -58,12 +58,15 @@ class AplicacionConPestanas(ctk.CTk):
         self.tab1 = self.tabview.add("Stock")
         self.tab4 = self.tabview.add("Carta restorante")  # Nueva pestaña para la carta
         self.tab2 = self.tabview.add("Pedido")
+        self.tab5 = self.tabview.add("Boleta")
         
         # Configurar contenido de cada pestaña
         self.configurar_pestana1()
         self.configurar_pestana2()
         self.configurar_pestana3()
         self._configurar_pestana_crear_menu()
+        self._configurar_pestana_ver_boleta()
+
     def configurar_pestana3(self):
         label = ctk.CTkLabel(self.tab3, text="Carga de archivo CSV")
         label.pack(pady=20)
@@ -142,19 +145,19 @@ class AplicacionConPestanas(ctk.CTk):
         contenedor.pack(expand=True, fill="both", padx=10, pady=10)
 
         # Botón: generar y mostrar PDF
-        boton_pdf = ctk.CTkButton(
+        boton_menu = ctk.CTkButton(
             contenedor,
             text="Generar Carta (PDF)",
             command=self.generar_y_mostrar_carta_pdf
         )
-        boton_pdf.pack(pady=10)
+        boton_menu.pack(pady=10)
 
         # Frame para alojar el visor PDF
-        self.pdf_frame = ctk.CTkFrame(contenedor)
-        self.pdf_frame.pack(expand=True, fill="both", padx=10, pady=10)
+        self.pdf_frame_carta = ctk.CTkFrame(contenedor)
+        self.pdf_frame_carta.pack(expand=True, fill="both", padx=10, pady=10)
 
         # Placeholder del visor (se crea al cargar el PDF)
-        self.pdf_viewer = None
+        self.pdf_viewer_carta = None
     def generar_y_mostrar_carta_pdf(self):
         try:
             # 1) Generar (y sobrescribir) PDF con el catálogo actual
@@ -165,21 +168,63 @@ class AplicacionConPestanas(ctk.CTk):
                 moneda="$")
 
             # 2) Destruir visor anterior (si existe)
-            if self.pdf_viewer is not None:
+            if self.pdf_viewer_carta is not None:
                 try:
-                    self.pdf_viewer.pack_forget()
-                    self.pdf_viewer.destroy()
+                    self.pdf_viewer_carta.pack_forget()
+                    self.pdf_viewer_carta.destroy()
                 except Exception:
                     pass
-                self.pdf_viewer = None
+                self.pdf_viewer_carta = None
 
             # 3) Crear visor y cargar archivo
             abs_pdf = os.path.abspath(pdf_path)
-            self.pdf_viewer = CTkPDFViewer(self.pdf_frame, file=abs_pdf)
-            self.pdf_viewer.pack(expand=True, fill="both")
+            self.pdf_viewer_carta = CTkPDFViewer(self.pdf_frame_carta, file=abs_pdf)
+            self.pdf_viewer_carta.pack(expand=True, fill="both")
 
         except Exception as e:
             CTkMessagebox(title="Error", message=f"No se pudo generar/mostrar la carta.\n{e}", icon="warning")
+
+    def _configurar_pestana_ver_boleta(self):
+        contenedor = ctk.CTkFrame(self.tab5)
+        contenedor.pack(expand=True, fill="both", padx=10, pady=10)
+    
+        # Botón: mostrar boleta PDF
+        boton_boleta = ctk.CTkButton(
+            contenedor,
+            text="Mostrar Boleta (PDF)",
+            command=self.mostrar_boleta
+        )
+        boton_boleta.pack(pady=10)
+    
+        # Frame para alojar el visor PDF
+        self.pdf_frame_boleta = ctk.CTkFrame(contenedor)
+        self.pdf_frame_boleta.pack(expand=True, fill="both", padx=10, pady=10)
+    
+        # Placeholder del visor (se crea al cargar el PDF)
+        self.pdf_viewer_boleta = None
+        
+
+    def mostrar_boleta(self):
+        try:
+            pdf_path = "boleta.pdf"
+
+            if not os.path.exists(pdf_path):
+                BoletaFacade.generar_boleta(self.pedidos, pdf_path)
+
+            if self.pdf_viewer_boleta is not None:
+                try:
+                    self.pdf_viewer_boleta.pack_forget()
+                    self.pdf_viewer_boleta.destroy()
+                except Exception:
+                    pass
+                self.pdf_viewer_boleta = None
+
+            abs_pdf = os.path.abspath(pdf_path)
+            self.pdf_viewer_boleta = CTkPDFViewer(self.pdf_frame_boleta, file=abs_pdf)
+            self.pdf_viewer_boleta.pack(expand=True, fill="both")
+
+        except Exception as e:
+            CTkMessagebox(title="Error", message=f"No se pudo generar/mostrar la boleta.\n{e}", icon="warning")
     def configurar_pestana1(self):
         # Dividir la Pestaña 1 en dos frames
         frame_formulario = ctk.CTkFrame(self.tab1)
