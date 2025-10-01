@@ -1,8 +1,4 @@
-"""
-CTkPDFViewer is a pdf viewer widget for customtkinter.
-Author: Akash Bora
-License: MIT
-"""
+
 
 import customtkinter
 from PIL import Image

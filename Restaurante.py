@@ -20,30 +20,30 @@ class AplicacionConPestanas(ctk.CTk):
         super().__init__()
         
 
-        # Configuración de la ventana principal
+
         self.title("Gestión de ingredientes y pedidos")
         self.geometry("870x700")
         nametofont("TkHeadingFont").configure(size=14)
         nametofont("TkDefaultFont").configure(size=11)
-        # Inicializar el Stock
+
         self.stock = Stock()
         self.menus_creados = set()
-        # Crear una instancia de Pedido
+
         self.pedido = Pedido()
-        #cargar menus por defecto
+
         self.menus = get_default_menus()  
-        # Crear el widget de pestañas
+  
         self.tabview = ctk.CTkTabview(self,command=self.on_tab_change)
         self.tabview.pack(expand=True, fill="both", padx=10, pady=10)
-        # Agregar las pestañas
+
         self.crear_pestanas()
 
     def actualizar_treeview(self):
-        # Limpiar el Treeview actual
+
         for item in self.tree.get_children():
             self.tree.delete(item)
 
-        # Agregar todos los ingredientes del stock al Treeview
+
         for ingrediente in self.stock.lista_ingredientes:
             self.tree.insert("", "end", values=(ingrediente.nombre,ingrediente.unidad, ingrediente.cantidad))    
 
@@ -55,9 +55,9 @@ class AplicacionConPestanas(ctk.CTk):
             print('pedido')    
     def crear_pestanas(self):
         # Crear y configurar las tres pestañas
-        self.tab3 = self.tabview.add("carga de ingredientes")  # Nueva pestaña
+        self.tab3 = self.tabview.add("carga de ingredientes")  
         self.tab1 = self.tabview.add("Stock")
-        self.tab4 = self.tabview.add("Carta restorante")  # Nueva pestaña para la carta
+        self.tab4 = self.tabview.add("Carta restorante")  
         self.tab2 = self.tabview.add("Pedido")
         self.tab5 = self.tabview.add("Boleta")
         
@@ -89,7 +89,7 @@ class AplicacionConPestanas(ctk.CTk):
         if self.df_csv is None:
             CTkMessagebox(title="Error", message="Primero debes cargar un archivo CSV.", icon="warning")
             return
-        # Espera columnas 'nombre' y 'cantidad' en el CSV
+
         if 'nombre' not in self.df_csv.columns or 'cantidad' not in self.df_csv.columns:
             CTkMessagebox(title="Error", message="El CSV debe tener columnas 'nombre' y 'cantidad'.", icon="warning")
             return
@@ -109,7 +109,7 @@ class AplicacionConPestanas(ctk.CTk):
         if archivo:
             try:
                 df = pd.read_csv(archivo)
-                self.df_csv = df  # Guarda el DataFrame para usarlo después
+                self.df_csv = df  
                 CTkMessagebox(title="CSV Cargado", message=f"Archivo cargado correctamente.\nFilas: {len(df)}", icon="info")
                 self.mostrar_dataframe_en_tabla(df)
                 return df
@@ -118,17 +118,17 @@ class AplicacionConPestanas(ctk.CTk):
         else:
             CTkMessagebox(title="Sin archivo", message="No se seleccionó ningún archivo.", icon="warning")
     def mostrar_dataframe_en_tabla(self, df):
-        # Elimina la tabla anterior si existe
+   
         if self.tabla_csv:
             self.tabla_csv.destroy()
 
-        # Crea una nueva tabla
+
         self.tabla_csv = ttk.Treeview(self.frame_tabla_csv, columns=list(df.columns), show="headings")
         for col in df.columns:
             self.tabla_csv.heading(col, text=col)
             self.tabla_csv.column(col, width=100, anchor="center")
 
-        # Inserta los datos
+
         for _, row in df.iterrows():
             self.tabla_csv.insert("", "end", values=list(row))
 
@@ -475,18 +475,17 @@ if __name__ == "__main__":
     import customtkinter as ctk
     from tkinter import ttk
 
-    # Ajustes CTk antes de crear la raíz
-    ctk.set_appearance_mode("Dark")  # ← Cambia "Light" por "Dark"
-    ctk.set_default_color_theme("blue")  # Puedes probar "dark-blue" si tienes ese theme
+
+    ctk.set_appearance_mode("Dark")  
+    ctk.set_default_color_theme("blue") 
     ctk.set_widget_scaling(1.0)
     ctk.set_window_scaling(1.0)
 
-    # Crear la raíz primero
     app = AplicacionConPestanas()
 
-    # Ahora sí: aplicar tema ttk usando la misma raíz (evita root extra)
+
     try:
-        style = ttk.Style(app)   # ← usa la raíz existente
+        style = ttk.Style(app)   
         style.theme_use("clam")
     except Exception:
         pass

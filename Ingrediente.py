@@ -5,11 +5,10 @@ from typing import Optional
 @dataclass(eq=True, frozen=False)
 class Ingrediente:
     nombre: str
-    unidad: Optional[str]   # <-- va 2° (sin valor por defecto)
-    cantidad: float           # <-- va 3°
+    unidad: Optional[str]  
+    cantidad: float          
 
     def __post_init__(self):
-        # Normalizamos cantidad a int siempre
         self.cantidad = float(self.cantidad)
 
     def __str__(self):
