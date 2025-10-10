@@ -10,23 +10,20 @@ class BoletaFacade:
         self.total = 0
 
     def generar_detalle_boleta(self):
-        """Genera el detalle de la boleta como una cadena de texto y lo almacena en self.detalle."""
         self.detalle = ""
         for item in self.pedido.menus:
             subtotal = item.precio * item.cantidad
             self.detalle += f"{item.nombre:<30} {item.cantidad:<10} ${item.precio:<10.2f} ${subtotal:<10.2f}\n"
         
         self.subtotal = self.pedido.calcular_total()
-        self.iva = self.subtotal * 0.19  # IVA del 19% en Chile
+        self.iva = self.subtotal * 0.19
         self.total = self.subtotal + self.iva
 
     def crear_pdf(self):
-        """Utiliza el detalle generado para crear un archivo PDF."""
         pdf = FPDF()
         pdf.add_page()
         pdf.set_font("Arial", size=12)
         
-        # Encabezado
         pdf.set_font("Arial", 'B', 16)
         pdf.cell(0, 10, "Boleta Restaurante", ln=True, align='L')
         pdf.set_font("Arial", size=12)
@@ -37,7 +34,6 @@ class BoletaFacade:
         pdf.cell(0, 10, f"Fecha: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}", ln=True, align='R')
         pdf.ln(10)
         
-        # Encabezado de tabla
         pdf.set_font("Arial", 'B', 12)
         pdf.cell(70, 10, "Nombre", border=1)
         pdf.cell(20, 10, "Cantidad", border=1)
@@ -45,7 +41,6 @@ class BoletaFacade:
         pdf.cell(30, 10, "Subtotal", border=1)
         pdf.ln()
         
-        # Detalle de la tabla
         pdf.set_font("Arial", size=12)
         for item in self.pedido.menus:
             subtotal = item.precio * item.cantidad
@@ -55,7 +50,6 @@ class BoletaFacade:
             pdf.cell(30, 10, f"${subtotal:.2f}", border=1)
             pdf.ln()
 
-        # Subtotal, IVA y Total en una sola fila ajustada a la derecha
         pdf.set_font("Arial", 'B', 12)
         pdf.cell(120, 10, "Subtotal:", 0, 0, 'R')
         pdf.cell(30, 10, f"${self.subtotal:.2f}", ln=True, align='R')
@@ -66,12 +60,11 @@ class BoletaFacade:
         pdf.cell(120, 10, "Total:", 0, 0, 'R')
         pdf.cell(30, 10, f"${self.total:.2f}", ln=True, align='R')
         
-        # Pie de página
         pdf.set_font("Arial", 'I', 10)
-        pdf.cell(0, 10, "Gracias por su compra. Para cualquier consulta, llámenos al +56 9 1234 5678.", 0, 1, 'C')
+        pdf.cell(0, 10, "Gracias por su compra. Para cualquier consulta, llámenos al +56 9 777 5678.", 0, 1, 'C')
         pdf.cell(0, 10, "Los productos adquiridos no tienen garantía.", 0, 1, 'C')
         
-        # Guardar el archivo PDF
+
         pdf_filename = "boleta.pdf"
         pdf.output(pdf_filename)
         return pdf_filename

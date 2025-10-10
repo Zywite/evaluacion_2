@@ -4,13 +4,16 @@ from Ingrediente import Ingrediente
 from Stock import Stock
 from IMenu import IMenu
 
-@dataclass
+@dataclass(frozen=True)
 class CrearMenu(IMenu):
     nombre: str
-    ingredientes: List[Ingrediente]
-    precio: float = 0.0
-    icono_path: Optional[str] = None
+    ingredientes: List[Ingrediente] = field(hash=False, compare=False)
+    precio: float = field(default=0.0, compare=False)
+    icono_path: Optional[str] = field(default=None, compare=False)
     cantidad: int = field(default=0, compare=False)
+
+    def __hash__(self):
+        return hash(self.nombre)
 
     def esta_disponible(self, stock: Stock) -> bool:
         for req in self.ingredientes:

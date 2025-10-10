@@ -4,13 +4,12 @@ from Ingrediente import Ingrediente
 from Stock import Stock
 
 class IMenu(Protocol):
-
+    """Interfaz para los elementos del menú."""
     nombre: str
     ingredientes: List[Ingrediente]
     precio: float
+    cantidad: int
     icono_path: Optional[str]
-    cantidad: int  
-
-
-    def esta_disponible(self, stock: Stock) -> bool: ...
-    def preparar(self) -> None: ...
+    
+    def esta_disponible(self, stock: Stock) -> bool:
+        ...

@@ -4,23 +4,51 @@ class Pedido:
         self.menus = []  
 
     def agregar_menu(self, menu: CrearMenu):
-
-        for menu_existente in self.menus:
-            if menu_existente.nombre == menu.nombre:
-                menu_existente.cantidad += 1  
+        # Buscar si el menú ya existe en el pedido
+        for m in self.menus:
+            if m.nombre == menu.nombre:
+                # Crear un nuevo menú con la cantidad incrementada
+                nuevo_menu = CrearMenu(
+                    nombre=m.nombre,
+                    ingredientes=m.ingredientes,
+                    precio=m.precio,
+                    icono_path=m.icono_path,
+                    cantidad=m.cantidad + 1
+                )
+                # Reemplazar el menú existente
+                self.menus[self.menus.index(m)] = nuevo_menu
                 return
-        menu.cantidad = 1  
-        self.menus.append(menu)
+        
+        # Si no existe, agregar como nuevo con cantidad 1
+        menu_copy = CrearMenu(
+            nombre=menu.nombre,
+            ingredientes=menu.ingredientes.copy(),
+            precio=menu.precio,
+            icono_path=menu.icono_path,
+            cantidad=1
+        )
+        self.menus.append(menu_copy)
 
     def eliminar_menu(self, nombre_menu: str):
-
-        self.menus = [menu for menu in self.menus if menu.nombre != nombre_menu]
+        for i, menu in enumerate(self.menus):
+            if menu.nombre == nombre_menu:
+                if menu.cantidad > 1:
+                    # Crear un nuevo menú con la cantidad decrementada
+                    nuevo_menu = CrearMenu(
+                        nombre=menu.nombre,
+                        ingredientes=menu.ingredientes,
+                        precio=menu.precio,
+                        icono_path=menu.icono_path,
+                        cantidad=menu.cantidad - 1
+                    )
+                    self.menus[i] = nuevo_menu
+                else:
+                    # Si la cantidad es 1, eliminar el menú
+                    self.menus.pop(i)
+                break
 
     def mostrar_pedido(self):
-
-        for menu in self.menus:
-            print(f"Nombre: {menu.nombre}, Cantidad: {menu.cantidad}, Precio: {menu.precio}")
+        return [(menu.nombre, menu.cantidad, menu.precio) for menu in self.menus]
 
     def calcular_total(self) -> float:
-
         return sum(menu.precio * menu.cantidad for menu in self.menus)

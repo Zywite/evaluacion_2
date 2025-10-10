@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv
+env/
+venv/
+ENV/
+.env/
+env.bak/
+venv.bak/
+
+# VS Code
+.vscode/
+*.code-workspace
+.history/
+
+# Archivos temporales del sistema
+.DS_Store
+Thumbs.db
+
+# Archivos PDF generados (si son temporales)
+boleta.pdf
+carta.pdf
+
+# Archivos de configuración específicos del usuario
+*.ini
+*.cfg
+
+# Logs y bases de datos
+*.log
+*.sqlite
+*.db
+
+# Directorios de entorno virtual de Python
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Archivos de distribución
+dist/
+build/
+*.egg-info/

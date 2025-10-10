@@ -9,9 +9,7 @@ class Ingrediente:
     cantidad: float          
 
     def __post_init__(self):
-        self.cantidad = float(self.cantidad)
+        self.cantidad = round(float(self.cantidad), 1)
 
     def __str__(self):
-        if self.unidad:
-            return f"{self.nombre} ({self.unidad}) x {self.cantidad}"
-        return f"{self.nombre} x {self.cantidad}"
+        return f"{self.nombre} x {self.cantidad} {self.unidad}"
