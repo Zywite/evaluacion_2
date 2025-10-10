@@ -22,8 +22,8 @@ Sistema de gestión para restaurantes implementado en Python con interfaz gráfi
 
 1. Clonar el repositorio:
 ```bash
-git clone https://github.com/Zywite/ev2_progra2.git
-cd ev2_progra2
+git clone https://github.com/Zywite/evaluacion_2.git
+cd evaluacion_2
 ```
 
 2. Crear un entorno virtual:
