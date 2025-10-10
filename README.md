@@ -68,6 +68,7 @@ python Restaurante.py
 
 - Joaquin Carrasco Duran
 - Benjamin Cabrera
+- Leonardo Chavez
 
 ## Licencia
 
