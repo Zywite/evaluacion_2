@@ -23,9 +23,36 @@ class AplicacionConPestanas(ctk.CTk):
         nametofont("TkHeadingFont").configure(size=14)
         nametofont("TkDefaultFont").configure(size=11)
 
+        # Configuración de estilos de botones
+        self.button_styles = {
+            'primary': {
+                'fg_color': "#2196F3",  # Azul material
+                'hover_color': "#1976D2",  # Azul más oscuro
+                'text_color': "white",
+                'corner_radius': 8,
+                'border_width': 0,
+                'font': ('Helvetica', 12)
+            },
+            'secondary': {
+                'fg_color': "#4CAF50",  # Verde material
+                'hover_color': "#388E3C",  # Verde más oscuro
+                'text_color': "white",
+                'corner_radius': 8,
+                'border_width': 0,
+                'font': ('Helvetica', 12)
+            },
+            'danger': {
+                'fg_color': "#F44336",  # Rojo material
+                'hover_color': "#D32F2F",  # Rojo más oscuro
+                'text_color': "white",
+                'corner_radius': 8,
+                'border_width': 0,
+                'font': ('Helvetica', 12)
+            }
+        }
+
         self.stock = Stock()
         self.menus_creados = set()
-
         self.pedido = Pedido()
 
         self.menus = get_default_menus()  
@@ -64,7 +91,12 @@ class AplicacionConPestanas(ctk.CTk):
     def configurar_pestana3(self):
         label = ctk.CTkLabel(self.tab3, text="Carga de archivo CSV")
         label.pack(pady=20)
-        boton_cargar_csv = ctk.CTkButton(self.tab3, text="Cargar CSV", fg_color="#1976D2", text_color="white",command=self.cargar_csv)
+        boton_cargar_csv = ctk.CTkButton(
+            self.tab3, 
+            text="Cargar CSV",
+            command=self.cargar_csv,
+            **self.button_styles['primary']
+        )
 
         boton_cargar_csv.pack(pady=10)
 
@@ -205,7 +237,8 @@ class AplicacionConPestanas(ctk.CTk):
 
         label_cantidad = ctk.CTkLabel(frame_formulario, text="Unidad:")
         label_cantidad.pack(pady=5)
-        self.combo_unidad = ctk.CTkComboBox(frame_formulario, values=["kg", "unid"])
+        self.combo_unidad = ctk.CTkComboBox(frame_formulario, values=["unid"], state="readonly")
+        self.combo_unidad.set("unid")
         self.combo_unidad.pack(pady=5)
 
         label_cantidad = ctk.CTkLabel(frame_formulario, text="Cantidad:")
@@ -213,11 +246,19 @@ class AplicacionConPestanas(ctk.CTk):
         self.entry_cantidad = ctk.CTkEntry(frame_formulario)
         self.entry_cantidad.pack(pady=5)
 
-        self.boton_ingresar = ctk.CTkButton(frame_formulario, text="Ingresar Ingrediente")
+        self.boton_ingresar = ctk.CTkButton(
+            frame_formulario,
+            text="Ingresar Ingrediente",
+            **self.button_styles['secondary']
+        )
         self.boton_ingresar.configure(command=self.ingresar_ingrediente)
         self.boton_ingresar.pack(pady=10)
 
-        self.boton_eliminar = ctk.CTkButton(frame_treeview, text="Eliminar Ingrediente", fg_color="black", text_color="white")
+        self.boton_eliminar = ctk.CTkButton(
+            frame_treeview,
+            text="Eliminar Ingrediente",
+            **self.button_styles['danger']
+        )
         self.boton_eliminar.configure(command=self.eliminar_ingrediente)
         self.boton_eliminar.pack(pady=10)
 
@@ -362,7 +403,12 @@ class AplicacionConPestanas(ctk.CTk):
         self.treeview_menu.heading("Precio Unitario", text="Precio Unitario")
         self.treeview_menu.pack(expand=True, fill="both", padx=10, pady=10)
 
-        self.boton_generar_boleta=ctk.CTkButton(frame_inferior,text="Generar Boleta",command=self.generar_boleta)
+        self.boton_generar_boleta = ctk.CTkButton(
+            frame_inferior,
+            text="Generar Boleta",
+            command=self.generar_boleta,
+            **self.button_styles['primary']
+        )
         self.boton_generar_boleta.pack(side="bottom",pady=10)
 
     def crear_tarjeta(self, menu):
@@ -436,7 +482,7 @@ class AplicacionConPestanas(ctk.CTk):
         # Limpiar campos
         self.entry_nombre.delete(0, 'end')
         self.entry_cantidad.delete(0, 'end')
-        self.combo_unidad.set("kg")
+        self.combo_unidad.set("unid")
 
     def eliminar_ingrediente(self):
         seleccion = self.tree.selection()
