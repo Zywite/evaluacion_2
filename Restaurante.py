@@ -49,7 +49,7 @@ class AplicacionConPestanas(ctk.CTk):
         if selected_tab in ["carga de ingredientes", "Stock", "Pedido", "Carta restorante", "Boleta"]:
             self.actualizar_treeview()
     def crear_pestanas(self):
-        self.tab3 = self.tabview.add("carga de ingredientes")  
+        self.tab3 = self.tabview.add("Carga de ingredientes")  
         self.tab1 = self.tabview.add("Stock")
         self.tab4 = self.tabview.add("Carta restorante")  
         self.tab2 = self.tabview.add("Pedido")
