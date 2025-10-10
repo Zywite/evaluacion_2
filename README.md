@@ -22,7 +22,7 @@ Sistema de gestión para restaurantes implementado en Python con interfaz gráfi
 
 1. Clonar el repositorio:
 ```bash
-git clone https://github.com/tu-usuario/ev2_progra2.git
+git clone https://github.com/Zywite/ev2_progra2.git
 cd ev2_progra2
 ```
 
