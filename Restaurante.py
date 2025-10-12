@@ -219,7 +219,24 @@ class AplicacionConPestanas(ctk.CTk):
         
 
     def mostrar_boleta(self):
-        pass
+        pdf_path = "boleta.pdf"
+        
+        # Limpiar el visor anterior si existe para evitar superposiciones
+        if self.pdf_viewer_boleta and self.pdf_viewer_boleta.winfo_exists():
+            self.pdf_viewer_boleta.destroy()
+        self.pdf_viewer_boleta = None
+
+        if os.path.exists(pdf_path):
+            try:
+                abs_pdf = os.path.abspath(pdf_path)
+                self.pdf_viewer_boleta = CTkPDFViewer(self.pdf_frame_boleta, file=abs_pdf)
+                self.pdf_viewer_boleta.pack(expand=True, fill="both")
+            except Exception as e:
+                CTkMessagebox(title="Error", message=f"No se pudo mostrar la boleta.\n{e}", icon="warning")
+        else:
+            # Mostrar un mensaje amigable si el archivo aún no se ha generado
+            label_info = ctk.CTkLabel(self.pdf_frame_boleta, text="Aún no se ha generado ninguna boleta.\nCree un pedido y genere la boleta primero.")
+            label_info.pack(pady=20)
 
     def configurar_pestana1(self):
         # Dividir la Pestaña 1 en dos frames
