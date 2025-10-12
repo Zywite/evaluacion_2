@@ -160,7 +160,7 @@ class AplicacionConPestanas(ctk.CTk):
         for item in self.treeview_menu.get_children():
             self.treeview_menu.delete(item)
 
-        for menu in self.pedido.menus:
+        for menu in self.pedido.menus.values():
             self.treeview_menu.insert("", "end", values=(menu.nombre, menu.cantidad, f"${menu.precio:.2f}"))
             
     def _configurar_pestana_crear_menu(self):
@@ -254,6 +254,7 @@ class AplicacionConPestanas(ctk.CTk):
         self.boton_ingresar.configure(command=self.ingresar_ingrediente)
         self.boton_ingresar.pack(pady=10)
 
+        # Este botón pertenece a la pestaña de Stock
         self.boton_eliminar = ctk.CTkButton(
             frame_treeview,
             text="Eliminar Ingrediente",
@@ -262,6 +263,9 @@ class AplicacionConPestanas(ctk.CTk):
         self.boton_eliminar.configure(command=self.eliminar_ingrediente)
         self.boton_eliminar.pack(pady=10)
 
+        self.boton_generar_menu = ctk.CTkButton(frame_treeview, text="Generar Menú", command=self.generar_menus)
+        self.boton_generar_menu.pack(pady=10)
+
         self.tree = ttk.Treeview(self.tab1, columns=("Nombre", "Unidad","Cantidad"), show="headings",height=25)
         
         self.tree.heading("Nombre", text="Nombre")
@@ -269,8 +273,6 @@ class AplicacionConPestanas(ctk.CTk):
         self.tree.heading("Cantidad", text="Cantidad")
         self.tree.pack(expand=True, fill="both", padx=10, pady=10)
 
-        self.boton_generar_menu = ctk.CTkButton(frame_treeview, text="Generar Menú", command=self.generar_menus)
-        self.boton_generar_menu.pack(pady=10)
     def tarjeta_click(self, event, menu):
         # Verificar stock
         faltantes = []
@@ -313,14 +315,14 @@ class AplicacionConPestanas(ctk.CTk):
     
     def generar_menus(self):
         # Limpiar el frame de tarjetas existente
-        for widget in tarjetas_frame.winfo_children():
+        for widget in self.tarjetas_frame.winfo_children():
             widget.destroy()
         
         # Recrear todas las tarjetas
         self.menus_creados.clear()
         for menu in self.menus:
             self.crear_tarjeta(menu)
-            self.menus_creados.add(menu)
+            self.menus_creados.add(menu.nombre)
 
     def eliminar_menu(self):
         seleccion = self.treeview_menu.selection()
@@ -333,14 +335,14 @@ class AplicacionConPestanas(ctk.CTk):
         
         # Encontrar el menú que se va a eliminar
         menu_a_eliminar = None
-        for menu in self.pedido.menus:
+        for menu in self.pedido.menus.values():
             if menu.nombre == nombre_menu:
                 menu_a_eliminar = menu
                 break
                 
         if menu_a_eliminar:
-            # Devolver los ingredientes al stock por cada unidad del menú
-            for _ in range(menu_a_eliminar.cantidad):
+            # Devolver los ingredientes al stock (solo una vez, ya que el pedido lo maneja por unidad)
+            if menu_a_eliminar.cantidad == 1:
                 self.stock.devolver_ingredientes(menu_a_eliminar.ingredientes)
             
             # Eliminar del pedido
@@ -381,14 +383,20 @@ class AplicacionConPestanas(ctk.CTk):
         frame_superior = ctk.CTkFrame(self.tab2)
         frame_superior.pack(side="top", fill="both", expand=True, padx=10, pady=10)
 
+        # Convertir tarjetas_frame a un atributo de instancia
+        self.tarjetas_frame = ctk.CTkScrollableFrame(frame_superior, label_text="Menús Disponibles")
+        self.tarjetas_frame.pack(expand=True, fill="both", padx=10, pady=10)
+
         frame_intermedio = ctk.CTkFrame(self.tab2)
         frame_intermedio.pack(side="top", fill="x", padx=10, pady=5)
 
-        global tarjetas_frame
-        tarjetas_frame = ctk.CTkFrame(frame_superior)
-        tarjetas_frame.pack(expand=True, fill="both", padx=10, pady=10)
-
-        self.boton_eliminar_menu = ctk.CTkButton(frame_intermedio, text="Eliminar Menú", command=self.eliminar_menu)
+        # Crear el botón de eliminar menú aquí, donde se va a usar.
+        self.boton_eliminar_menu = ctk.CTkButton(
+            frame_intermedio, 
+            text="Eliminar Menú", 
+            command=self.eliminar_menu,
+            **self.button_styles['danger']
+        )
         self.boton_eliminar_menu.pack(side="right", padx=10)
 
         self.label_total = ctk.CTkLabel(frame_intermedio, text="Total: $0.00", anchor="e", font=("Helvetica", 12, "bold"))
@@ -412,12 +420,12 @@ class AplicacionConPestanas(ctk.CTk):
         self.boton_generar_boleta.pack(side="bottom",pady=10)
 
     def crear_tarjeta(self, menu):
-        num_tarjetas = len(self.menus_creados)
+        num_tarjetas = len(self.tarjetas_frame.winfo_children())
         fila = 0
         columna = num_tarjetas
 
         tarjeta = ctk.CTkFrame(
-            tarjetas_frame,
+            self.tarjetas_frame, # Usar el atributo de instancia
             corner_radius=10,
             border_width=1,
             border_color="#4CAF50",
@@ -437,7 +445,7 @@ class AplicacionConPestanas(ctk.CTk):
                 imagen_label = ctk.CTkLabel(
                     tarjeta, image=icono, width=64, height=64, text="", bg_color="transparent"
                 )
-                imagen_label.image = icono
+                imagen_label.image = icono # type: ignore
                 imagen_label.pack(anchor="center", pady=5, padx=10)
                 imagen_label.bind("<Button-1>", lambda event: self.tarjeta_click(event, menu))
             except Exception as e:
