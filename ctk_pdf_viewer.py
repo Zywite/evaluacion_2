@@ -49,7 +49,7 @@ class CTkPDFViewer(customtkinter.CTkScrollableFrame):
                 
                 for page_num in range(num_pages):
                     page = open_pdf[page_num]
-                    pix = page.get_pixmap(alpha=False)
+                    pix = page.get_pixmap(alpha=False)  # type: ignore
                     img = Image.open(io.BytesIO(pix.tobytes('ppm')))
                     
                     # Usamos after para asegurar que la UI se actualice en el hilo principal
@@ -97,12 +97,18 @@ class CTkPDFViewer(customtkinter.CTkScrollableFrame):
         """configurable options"""
         if "file" in kwargs:
             self.file = kwargs.pop("file")
-            # Limpiar visualizador actual
-            self.pdf_images = []
+            # Limpiar completamente el visualizador actual
             for label in self.labels:
-                label.destroy()
-            self.labels = []
+                if label.winfo_exists():
+                    label.destroy()
+            self.labels.clear()
+            self.pdf_images = []
+            
             # Reiniciar proceso de carga
+            self.loading_message.pack(pady=10)
+            self.loading_bar.pack(side="top", fill="x", padx=10)
+            self.loading_bar.set(0)
+            self.percentage_load.set("")
             self.after(250, self.start_process)
             
         if "page_width" in kwargs:
