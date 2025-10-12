@@ -17,10 +17,9 @@ class CrearMenu(IMenu):
 
     def esta_disponible(self, stock: Stock) -> bool:
         # Para una búsqueda eficiente, se convierte la lista de stock en un diccionario.
-        # La clave puede ser el nombre del ingrediente o una tupla (nombre, unidad).
-        # Aquí se usa solo el nombre para simplificar, asumiendo nombres únicos.
-        stock_disponible = {ing.nombre: ing for ing in stock.lista_ingredientes}
-
+        # NOTA: stock.lista_ingredientes ya es un diccionario optimizado.
+        stock_disponible = stock.lista_ingredientes
+        
         for ingrediente_requerido in self.ingredientes:
             # 1. Buscar el ingrediente en el stock
             ingrediente_en_stock = stock_disponible.get(ingrediente_requerido.nombre)

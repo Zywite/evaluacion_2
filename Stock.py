@@ -1,66 +1,56 @@
+from Ingrediente import Ingrediente
+from typing import Dict, List
+
 class Stock:
     def __init__(self):
-        self.lista_ingredientes = []
+        self.lista_ingredientes: Dict[str, Ingrediente] = {}
 
-    def agregar_ingrediente(self, ingrediente):
-        # Buscar si ya existe el ingrediente
-        for i, ing in enumerate(self.lista_ingredientes):
-            if ing.nombre == ingrediente.nombre:
-                # Actualizar cantidad si existe, formateando a un decimal
-                nueva_cantidad = float(self.lista_ingredientes[i].cantidad) + float(ingrediente.cantidad)
-                self.lista_ingredientes[i].cantidad = round(nueva_cantidad, 1)
-                return
-        # Si no existe, agregar nuevo con cantidad formateada
-        ingrediente.cantidad = round(float(ingrediente.cantidad), 1)
-        self.lista_ingredientes.append(ingrediente)
+    def agregar_ingrediente(self, ingrediente: Ingrediente):
+        if ingrediente.nombre in self.lista_ingredientes:
+            # Si ya existe, actualiza la cantidad
+            ing_existente = self.lista_ingredientes[ingrediente.nombre]
+            nueva_cantidad = ing_existente.cantidad + ingrediente.cantidad
+            ing_existente.cantidad = round(nueva_cantidad, 1)
+        else:
+            # Si no existe, lo agrega al diccionario
+            ingrediente.cantidad = round(ingrediente.cantidad, 1)
+            self.lista_ingredientes[ingrediente.nombre] = ingrediente
 
     def eliminar_ingrediente(self, nombre_ingrediente):
-        self.lista_ingredientes = [ing for ing in self.lista_ingredientes if ing.nombre != nombre_ingrediente]
+        if nombre_ingrediente in self.lista_ingredientes:
+            del self.lista_ingredientes[nombre_ingrediente]
 
     def verificar_stock(self):
         return len(self.lista_ingredientes) > 0
 
-    def verificar_ingredientes_suficientes(self, ingredientes_necesarios):
-        if not self.lista_ingredientes:
-            return False
-            
+    def verificar_ingredientes_suficientes(self, ingredientes_necesarios: List[Ingrediente]) -> bool:
         for ing_necesario in ingredientes_necesarios:
-            encontrado = False
-            for ing_stock in self.lista_ingredientes:
-                if ing_necesario.nombre == ing_stock.nombre:
-                    encontrado = True
-                    if float(ing_stock.cantidad) < float(ing_necesario.cantidad):
-                        return False
-                    break
-            if not encontrado:
+            ing_stock = self.lista_ingredientes.get(ing_necesario.nombre)
+            if ing_stock is None or ing_stock.cantidad < ing_necesario.cantidad:
                 return False
         return True
 
-    def reservar_ingredientes(self, ingredientes):
+    def reservar_ingredientes(self, ingredientes: List[Ingrediente]):
         """Resta los ingredientes del stock"""
         for ing_necesario in ingredientes:
-            for ing_stock in self.lista_ingredientes:
-                if ing_necesario.nombre == ing_stock.nombre:
-                    nueva_cantidad = float(ing_stock.cantidad) - float(ing_necesario.cantidad)
-                    ing_stock.cantidad = round(nueva_cantidad, 1)
-                    break
+            if ing_necesario.nombre in self.lista_ingredientes:
+                ing_stock = self.lista_ingredientes[ing_necesario.nombre]
+                nueva_cantidad = ing_stock.cantidad - ing_necesario.cantidad
+                ing_stock.cantidad = round(nueva_cantidad, 1)
 
-    def devolver_ingredientes(self, ingredientes):
+    def devolver_ingredientes(self, ingredientes: List[Ingrediente]):
         """Devuelve los ingredientes al stock"""
         for ing_devolver in ingredientes:
-            for ing_stock in self.lista_ingredientes:
-                if ing_devolver.nombre == ing_stock.nombre:
-                    nueva_cantidad = float(ing_stock.cantidad) + float(ing_devolver.cantidad)
-                    ing_stock.cantidad = round(nueva_cantidad, 1)
-                    break
+            if ing_devolver.nombre in self.lista_ingredientes:
+                ing_stock = self.lista_ingredientes[ing_devolver.nombre]
+                nueva_cantidad = ing_stock.cantidad + ing_devolver.cantidad
+                ing_stock.cantidad = round(nueva_cantidad, 1)
 
     def actualizar_stock(self, nombre_ingrediente, nueva_cantidad):
-        for ingrediente in self.lista_ingredientes:
-            if ingrediente.nombre == nombre_ingrediente:
-                ingrediente.cantidad = float(nueva_cantidad)
-                return True
+        if nombre_ingrediente in self.lista_ingredientes:
+            self.lista_ingredientes[nombre_ingrediente].cantidad = float(nueva_cantidad)
+            return True
         return False
 
     def obtener_elementos_menu(self):
-        return self.lista_ingredientes
-
+        return list(self.lista_ingredientes.values())
