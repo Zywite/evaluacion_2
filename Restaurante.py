@@ -67,9 +67,9 @@ class AplicacionConPestanas(ctk.CTk):
         for item in self.tree.get_children():
             self.tree.delete(item)
 
-
-        for ingrediente in self.stock.lista_ingredientes:
-            self.tree.insert("", "end", values=(ingrediente.nombre,ingrediente.unidad, ingrediente.cantidad))    
+        # Iterar sobre los valores del diccionario de stock
+        for ingrediente in self.stock.lista_ingredientes.values():
+            self.tree.insert("", "end", values=(ingrediente.nombre, ingrediente.unidad, ingrediente.cantidad))    
 
     def on_tab_change(self):
         selected_tab = self.tabview.get()
@@ -263,9 +263,6 @@ class AplicacionConPestanas(ctk.CTk):
         self.boton_eliminar.configure(command=self.eliminar_ingrediente)
         self.boton_eliminar.pack(pady=10)
 
-        self.boton_generar_menu = ctk.CTkButton(frame_treeview, text="Generar Menú", command=self.generar_menus)
-        self.boton_generar_menu.pack(pady=10)
-
         self.tree = ttk.Treeview(self.tab1, columns=("Nombre", "Unidad","Cantidad"), show="headings",height=25)
         
         self.tree.heading("Nombre", text="Nombre")
@@ -276,17 +273,14 @@ class AplicacionConPestanas(ctk.CTk):
     def tarjeta_click(self, event, menu):
         # Verificar stock
         faltantes = []
+        # Aprovechar la búsqueda O(1) del diccionario de stock
         for ing_necesario in menu.ingredientes:
-            encontrado = False
-            for ing_stock in self.stock.lista_ingredientes:
-                if ing_necesario.nombre == ing_stock.nombre:
-                    encontrado = True
-                    if float(ing_stock.cantidad) < float(ing_necesario.cantidad):
-                        faltantes.append(f"{ing_necesario.nombre}: necesita {ing_necesario.cantidad} {ing_necesario.unidad}, hay {ing_stock.cantidad} {ing_stock.unidad}")
-                    break
-            if not encontrado:
+            ing_stock = self.stock.lista_ingredientes.get(ing_necesario.nombre)
+            if ing_stock is None:
                 faltantes.append(f"{ing_necesario.nombre}: necesita {ing_necesario.cantidad} {ing_necesario.unidad}, no hay en stock")
-
+            elif ing_stock.cantidad < ing_necesario.cantidad:
+                faltantes.append(f"{ing_necesario.nombre}: necesita {ing_necesario.cantidad} {ing_necesario.unidad}, hay {ing_stock.cantidad} {ing_stock.unidad}")
+                
         if faltantes:
             mensaje = f"No hay suficientes ingredientes para preparar el menú '{menu.nombre}'.\n\nIngredientes necesarios:\n"
             mensaje += "\n".join(faltantes)
@@ -399,6 +393,10 @@ class AplicacionConPestanas(ctk.CTk):
         )
         self.boton_eliminar_menu.pack(side="right", padx=10)
 
+        # Botón para refrescar la vista de menús
+        self.boton_refrescar_menus = ctk.CTkButton(frame_intermedio, text="Refrescar Menús", command=self.generar_menus)
+        self.boton_refrescar_menus.pack(side="left", padx=10)
+
         self.label_total = ctk.CTkLabel(frame_intermedio, text="Total: $0.00", anchor="e", font=("Helvetica", 12, "bold"))
         self.label_total.pack(side="right", padx=10)
 
@@ -418,6 +416,9 @@ class AplicacionConPestanas(ctk.CTk):
             **self.button_styles['primary']
         )
         self.boton_generar_boleta.pack(side="bottom",pady=10)
+
+        # Generar las tarjetas de menú la primera vez que se configura la pestaña
+        self.generar_menus()
 
     def crear_tarjeta(self, menu):
         num_tarjetas = len(self.tarjetas_frame.winfo_children())
