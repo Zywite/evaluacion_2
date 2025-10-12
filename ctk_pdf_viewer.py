@@ -44,6 +44,9 @@ class CTkPDFViewer(customtkinter.CTkScrollableFrame):
     def add_pages(self):
         """add images and labels"""
         try:
+            # Se utiliza 'with' para garantizar que el archivo PDF se cierre automáticamente
+            # al finalizar el bloque, incluso si ocurren errores durante el procesamiento.
+            # Esto previene fugas de recursos (resource leaks).
             with fitz.open(self.file) as open_pdf:
                 num_pages = len(open_pdf)
                 
