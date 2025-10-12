@@ -11,7 +11,7 @@ class BoletaFacade:
 
     def generar_detalle_boleta(self):
         self.detalle = ""
-        for item in self.pedido.menus:
+        for item in self.pedido.menus.values():
             subtotal = item.precio * item.cantidad
             self.detalle += f"{item.nombre:<30} {item.cantidad:<10} ${item.precio:<10.2f} ${subtotal:<10.2f}\n"
         
@@ -42,7 +42,7 @@ class BoletaFacade:
         pdf.ln()
         
         pdf.set_font("Arial", size=12)
-        for item in self.pedido.menus:
+        for item in self.pedido.menus.values():
             subtotal = item.precio * item.cantidad
             pdf.cell(70, 10, item.nombre, border=1)
             pdf.cell(20, 10, str(item.cantidad), border=1)
