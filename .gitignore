@@ -33,10 +33,8 @@ carta.pdf
 *.sqlite
 *.db
 
-# Archivos LaTeX
-informe_latex/*
-!informe_latex/*.pdf
-!informe_latex/images/
+# Archivos generados por LaTeX
+# Ignora los archivos temporales y de compilación, pero no los fuentes (.tex).
 *.aux
 *.fdb_latexmk
 *.fls
@@ -44,7 +42,6 @@ informe_latex/*
 *.out
 *.synctex.gz
 *.toc
-*.tex
 
 # Directorios de entorno virtual de Python
 .Python
