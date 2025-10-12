@@ -2,6 +2,14 @@ from fpdf import FPDF
 from datetime import datetime
 
 class BoletaFacade:
+    """
+    Implementa el patrón de diseño Facade (Fachada).
+
+    Esta clase simplifica la compleja tarea de generar una boleta. Oculta toda la lógica
+    de cálculo de totales, IVA y formato del PDF detrás de un método simple y único: `generar_boleta()`.
+    El cliente (en este caso, la clase Restaurante) solo necesita interactuar con esta fachada,
+    sin preocuparse por los detalles internos de la creación del PDF.
+    """
     def __init__(self, pedido):
         self.pedido = pedido
         self.detalle = ""

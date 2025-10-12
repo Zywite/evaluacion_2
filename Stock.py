@@ -2,6 +2,14 @@ from Ingrediente import Ingrediente
 from typing import Dict, List
 
 class Stock:
+    """
+    Gestiona el inventario de ingredientes del restaurante.
+
+    Decisión de Diseño: Se utiliza un diccionario (`Dict[str, Ingrediente]`) para almacenar
+    los ingredientes. Esto garantiza un rendimiento óptimo (tiempo constante, O(1)) para
+    operaciones clave como agregar, buscar, actualizar o eliminar ingredientes, sin importar
+    cuán grande sea el inventario.
+    """
     def __init__(self):
         self.lista_ingredientes: Dict[str, Ingrediente] = {}
 

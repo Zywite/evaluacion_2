@@ -2,6 +2,14 @@ from ElementoMenu import CrearMenu
 from typing import Dict, List, Tuple
 
 class Pedido:
+    """
+    Gestiona el estado del pedido actual de un cliente.
+
+    Decisión de Diseño: Al igual que la clase Stock, utiliza un diccionario para almacenar
+    los menús del pedido. La clave es el nombre del menú y el valor es el objeto CrearMenu.
+    Esto permite agregar o eliminar menús de forma extremadamente eficiente (O(1)),
+    lo que es crucial para una experiencia de usuario fluida.
+    """
     def __init__(self):
         # Usar un diccionario para acceso O(1)
         self.menus: Dict[str, CrearMenu] = {}
