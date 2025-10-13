@@ -232,24 +232,33 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
         
 
     def mostrar_boleta(self):
-        pdf_path = "boleta.pdf"
-        
-        # Limpiar el visor anterior si existe para evitar superposiciones
-        if self.pdf_viewer_boleta and self.pdf_viewer_boleta.winfo_exists():
-            self.pdf_viewer_boleta.destroy()
-        self.pdf_viewer_boleta = None
+        """Muestra la boleta más reciente en el visor PDF."""
+        try:
+            # Verificar si existe el directorio de boletas
+            if not os.path.exists("boletas"):
+                CTkMessagebox(title="Error", message="No hay boletas generadas para mostrar.", icon="warning")
+                return
 
-        if os.path.exists(pdf_path):
-            try:
-                abs_pdf = os.path.abspath(pdf_path)
-                self.pdf_viewer_boleta = CTkPDFViewer(self.pdf_frame_boleta, file=abs_pdf)
-                self.pdf_viewer_boleta.pack(expand=True, fill="both")
-            except Exception as e:
-                CTkMessagebox(title="Error", message=f"No se pudo mostrar la boleta.\n{e}", icon="warning")
-        else:
-            # Mostrar un mensaje amigable si el archivo aún no se ha generado
-            label_info = ctk.CTkLabel(self.pdf_frame_boleta, text="Aún no se ha generado ninguna boleta.\nCree un pedido y genere la boleta primero.")
-            label_info.pack(pady=20)
+            # Obtener la lista de boletas y ordenarlas por fecha
+            boletas = [f for f in os.listdir("boletas") if f.startswith("boleta_")]
+            if not boletas:
+                CTkMessagebox(title="Error", message="No hay boletas generadas para mostrar.", icon="warning")
+                return
+
+            # Obtener la boleta más reciente
+            ultima_boleta = max(boletas)  # Como el formato incluye timestamp, max() dará la más reciente
+            ruta_boleta = os.path.join("boletas", ultima_boleta)
+
+            if self.pdf_viewer_boleta is not None:
+                self.pdf_viewer_boleta.pack_forget()
+                self.pdf_viewer_boleta.destroy()
+            
+            abs_pdf = os.path.abspath(ruta_boleta)
+            self.pdf_viewer_boleta = CTkPDFViewer(self.pdf_frame_boleta, file=abs_pdf)
+            self.pdf_viewer_boleta.pack(expand=True, fill="both")
+            
+        except Exception as e:
+            CTkMessagebox(title="Error", message=f"Error al mostrar la boleta: {str(e)}", icon="warning")
 
     def configurar_pestana1(self):
         # Dividir la Pestaña 1 en dos frames
@@ -284,7 +293,6 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
         self.boton_ingresar.configure(command=self.ingresar_ingrediente)
         self.boton_ingresar.pack(pady=10)
 
-        # Este botón pertenece a la pestaña de Stock
         self.boton_eliminar = ctk.CTkButton(
             frame_treeview,
             text="Eliminar Ingrediente",
@@ -300,17 +308,22 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
         self.tree.heading("Cantidad", text="Cantidad")
         self.tree.pack(expand=True, fill="both", padx=10, pady=10)
 
+        self.boton_generar_menu = ctk.CTkButton(frame_treeview, text="Generar Menú", command=self.generar_menus)
+        self.boton_generar_menu.pack(pady=10)
     def tarjeta_click(self, event, menu):
         # Verificar stock
         faltantes = []
-        # Aprovechar la búsqueda O(1) del diccionario de stock
         for ing_necesario in menu.ingredientes:
-            ing_stock = self.stock.lista_ingredientes.get(ing_necesario.nombre)
-            if ing_stock is None:
+            encontrado = False
+            for ing_stock in self.stock.lista_ingredientes.values():
+                if ing_necesario.nombre == ing_stock.nombre:
+                    encontrado = True
+                    if float(ing_stock.cantidad) < float(ing_necesario.cantidad):
+                        faltantes.append(f"{ing_necesario.nombre}: necesita {ing_necesario.cantidad} {ing_necesario.unidad}, hay {ing_stock.cantidad} {ing_stock.unidad}")
+                    break
+            if not encontrado:
                 faltantes.append(f"{ing_necesario.nombre}: necesita {ing_necesario.cantidad} {ing_necesario.unidad}, no hay en stock")
-            elif ing_stock.cantidad < ing_necesario.cantidad:
-                faltantes.append(f"{ing_necesario.nombre}: necesita {ing_necesario.cantidad} {ing_necesario.unidad}, hay {ing_stock.cantidad} {ing_stock.unidad}")
-                
+
         if faltantes:
             mensaje = f"No hay suficientes ingredientes para preparar el menú '{menu.nombre}'.\n\nIngredientes necesarios:\n"
             mensaje += "\n".join(faltantes)
@@ -339,14 +352,14 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
     
     def generar_menus(self):
         # Limpiar el frame de tarjetas existente
-        for widget in self.tarjetas_frame.winfo_children():
+        for widget in tarjetas_frame.winfo_children():
             widget.destroy()
         
         # Recrear todas las tarjetas
         self.menus_creados.clear()
         for menu in self.menus:
             self.crear_tarjeta(menu)
-            self.menus_creados.add(menu.nombre)
+            self.menus_creados.add(menu)
 
     def eliminar_menu(self):
         seleccion = self.treeview_menu.selection()
@@ -365,8 +378,8 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
                 break
                 
         if menu_a_eliminar:
-            # Devolver los ingredientes al stock (solo una vez, ya que el pedido lo maneja por unidad)
-            if menu_a_eliminar.cantidad == 1:
+            # Devolver los ingredientes al stock por cada unidad del menú
+            for _ in range(menu_a_eliminar.cantidad):
                 self.stock.devolver_ingredientes(menu_a_eliminar.ingredientes)
             
             # Eliminar del pedido
@@ -385,13 +398,17 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
 
         try:
             boleta = BoletaFacade(self.pedido)
-            boleta.generar_boleta()  # Genera la boleta en boleta.pdf
+            pdf_path = boleta.generar_boleta()  # Ahora devuelve directamente la ruta del archivo
             
+            if not os.path.exists(pdf_path):
+                raise FileNotFoundError(f"No se pudo encontrar el archivo de la boleta: {pdf_path}")
+                
             if self.pdf_viewer_boleta is not None:
                 self.pdf_viewer_boleta.pack_forget()
                 self.pdf_viewer_boleta.destroy()
             
-            abs_pdf = os.path.abspath("boleta.pdf")
+            # Asegurarnos de usar la ruta absoluta
+            abs_pdf = os.path.abspath(pdf_path)
             self.pdf_viewer_boleta = CTkPDFViewer(self.pdf_frame_boleta, file=abs_pdf)
             self.pdf_viewer_boleta.pack(expand=True, fill="both")
             
@@ -400,6 +417,13 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
             self.actualizar_treeview_pedido()
             self.label_total.configure(text="Total: $0.00")
             
+            # Mostrar mensaje de éxito con la ubicación de la boleta
+            CTkMessagebox(
+                title="Éxito",
+                message=f"Boleta generada exitosamente y guardada en:\n{abs_pdf}",
+                icon="info"
+            )
+            
         except Exception as e:
             CTkMessagebox(title="Error", message=f"Error al generar la boleta: {str(e)}", icon="warning")
 
@@ -407,25 +431,15 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
         frame_superior = ctk.CTkFrame(self.tab2)
         frame_superior.pack(side="top", fill="both", expand=True, padx=10, pady=10)
 
-        # Convertir tarjetas_frame a un atributo de instancia
-        self.tarjetas_frame = ctk.CTkScrollableFrame(frame_superior, label_text="Menús Disponibles")
-        self.tarjetas_frame.pack(expand=True, fill="both", padx=10, pady=10)
-
         frame_intermedio = ctk.CTkFrame(self.tab2)
         frame_intermedio.pack(side="top", fill="x", padx=10, pady=5)
 
-        # Crear el botón de eliminar menú aquí, donde se va a usar.
-        self.boton_eliminar_menu = ctk.CTkButton(
-            frame_intermedio, 
-            text="Eliminar Menú", 
-            command=self.eliminar_menu,
-            **self.button_styles['danger']
-        )
-        self.boton_eliminar_menu.pack(side="right", padx=10)
+        global tarjetas_frame
+        tarjetas_frame = ctk.CTkFrame(frame_superior)
+        tarjetas_frame.pack(expand=True, fill="both", padx=10, pady=10)
 
-        # Botón para refrescar la vista de menús
-        self.boton_refrescar_menus = ctk.CTkButton(frame_intermedio, text="Refrescar Menús", command=self.generar_menus)
-        self.boton_refrescar_menus.pack(side="left", padx=10)
+        self.boton_eliminar_menu = ctk.CTkButton(frame_intermedio, text="Eliminar Menú", command=self.eliminar_menu)
+        self.boton_eliminar_menu.pack(side="right", padx=10)
 
         self.label_total = ctk.CTkLabel(frame_intermedio, text="Total: $0.00", anchor="e", font=("Helvetica", 12, "bold"))
         self.label_total.pack(side="right", padx=10)
@@ -447,16 +461,13 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
         )
         self.boton_generar_boleta.pack(side="bottom",pady=10)
 
-        # Generar las tarjetas de menú la primera vez que se configura la pestaña
-        self.generar_menus()
-
     def crear_tarjeta(self, menu):
-        num_tarjetas = len(self.tarjetas_frame.winfo_children())
+        num_tarjetas = len(self.menus_creados)
         fila = 0
         columna = num_tarjetas
 
         tarjeta = ctk.CTkFrame(
-            self.tarjetas_frame, # Usar el atributo de instancia
+            tarjetas_frame,
             corner_radius=10,
             border_width=1,
             border_color="#4CAF50",
@@ -476,7 +487,7 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
                 imagen_label = ctk.CTkLabel(
                     tarjeta, image=icono, width=64, height=64, text="", bg_color="transparent"
                 )
-                imagen_label.image = icono # type: ignore
+                # No es necesario guardar la referencia del icono en customtkinter
                 imagen_label.pack(anchor="center", pady=5, padx=10)
                 imagen_label.bind("<Button-1>", lambda event: self.tarjeta_click(event, menu))
             except Exception as e:

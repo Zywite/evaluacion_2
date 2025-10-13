@@ -1,5 +1,6 @@
 from fpdf import FPDF
 from datetime import datetime
+import os
 
 class BoletaFacade:
     """
@@ -73,12 +74,21 @@ class BoletaFacade:
         pdf.cell(0, 10, "Los productos adquiridos no tienen garantía.", 0, 1, 'C')
         
 
-        pdf_filename = "boleta.pdf"
-        pdf.output(pdf_filename)
-        return pdf_filename
+        # Crear un nombre único para la boleta usando timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        pdf_filename = f"boleta_{timestamp}.pdf"
+        
+        # Crear directorio para boletas si no existe
+        boletas_dir = "boletas"
+        if not os.path.exists(boletas_dir):
+            os.makedirs(boletas_dir)
+            
+        # Guardar en el directorio de boletas
+        pdf_path = os.path.join(boletas_dir, pdf_filename)
+        pdf.output(pdf_path)
+        return pdf_path
 
     def generar_boleta(self):
         """Coordina la generación de la boleta y la creación del PDF."""
         self.generar_detalle_boleta()
-        pdf_path = self.crear_pdf()
-        return(f"Boleta generada y guardada en: {pdf_path}")
+        return self.crear_pdf()

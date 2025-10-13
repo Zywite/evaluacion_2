@@ -5,6 +5,7 @@ from customtkinter import CTk, CTkFrame
 from PIL import Image
 import fitz
 from threading import Thread
+import math
 import io
 import os
 
@@ -19,8 +20,8 @@ class CTkPDFViewer(customtkinter.CTkScrollableFrame):
         
         super().__init__(master, **kwargs)
 
-        self._page_width = page_width
-        self._page_height = page_height
+        self.page_width = page_width
+        self.page_height = page_height
         self.separation = page_separation_height
         self.pdf_images = []
         self.labels = []
@@ -44,85 +45,66 @@ class CTkPDFViewer(customtkinter.CTkScrollableFrame):
     def add_pages(self):
         """add images and labels"""
         try:
-            # Se utiliza 'with' para garantizar que el archivo PDF se cierre automáticamente
-            # al finalizar el bloque, incluso si ocurren errores durante el procesamiento.
-            # Esto previene fugas de recursos (resource leaks).
-            with fitz.open(self.file) as open_pdf:
-                num_pages = len(open_pdf)
-                
-                for page_num in range(num_pages):
-                    page = open_pdf[page_num]
-                    pix = page.get_pixmap(alpha=False)  # type: ignore
-                    img = Image.open(io.BytesIO(pix.tobytes('ppm')))
+            self.percentage_bar = 0
+            open_pdf = fitz.open(self.file)
+            
+            for page in open_pdf:
+                # Convert PDF page to image using current PyMuPDF API
+                pix = page.get_displaylist().get_pixmap(alpha=False)
+                img = Image.open(io.BytesIO(pix.tobytes('ppm')))
+                label_img = customtkinter.CTkImage(img, size=(self.page_width, self.page_height))
+                self.pdf_images.append(label_img)
                     
-                    # Usamos after para asegurar que la UI se actualice en el hilo principal
-                    self.after(0, self._update_page, img, page_num, num_pages)
-
-                self.after(100, self._finalize_loading)
-
+                self.percentage_bar = self.percentage_bar + 1
+                percentage_view = (float(self.percentage_bar) / float(len(open_pdf)) * float(100))
+                self.loading_bar.set(percentage_view)
+                self.percentage_load.set(f"Cargando {os.path.basename(self.file)} \n{int(math.floor(percentage_view))}%")
+            
+            self.loading_bar.pack_forget()
+            self.loading_message.pack_forget()
+            open_pdf.close()
+            
+            for i in self.pdf_images:
+                label = customtkinter.CTkLabel(self, image=i, text="")
+                label.pack(pady=(0, self.separation))
+                self.labels.append(label)
         except Exception as e:
-            self.after(0, self._display_error, e)
-
-    def _update_page(self, img: Image.Image, page_num: int, total_pages: int):
-        """Crea y muestra una página del PDF. Se ejecuta en el hilo principal."""
-        ctk_img = customtkinter.CTkImage(img, size=(self._page_width, self._page_height))
-        self.pdf_images.append(ctk_img)
-
-        label = customtkinter.CTkLabel(self, image=ctk_img, text="")
-        label.pack(pady=(0, self.separation))
-        self.labels.append(label)
-
-        progress = (page_num + 1) / total_pages
-        self.loading_bar.set(progress)
-        self.percentage_load.set(f"Cargando {os.path.basename(self.file)} \n{int(progress * 100)}%")
-
-    def _finalize_loading(self):
-        """Oculta los widgets de carga. Se ejecuta en el hilo principal."""
-        self.loading_bar.pack_forget()
-        self.loading_message.pack_forget()
-
-    def _display_error(self, e: Exception):
-        """Muestra un mensaje de error. Se ejecuta en el hilo principal."""
-        self.loading_bar.pack_forget()
-        self.loading_message.pack_forget()
-        error_message = customtkinter.CTkLabel(
-            self, 
-            text=f"Error al cargar el PDF:\n{e}\n\nPuede abrir el archivo en:\n{os.path.abspath(self.file)}",
-            justify="center",
-            wraplength=self.winfo_width() - 40
-        )
-        error_message.pack(pady=20, padx=20, fill="x")
-        
-        open_button = customtkinter.CTkButton(self, text="Abrir PDF externamente", command=lambda: os.startfile(self.file))
-        open_button.pack(pady=10)
+            error_message = customtkinter.CTkLabel(
+                self, 
+                text=f"Error al cargar el PDF:\n{str(e)}\n\nPuede abrir el archivo en:\n{os.path.abspath(self.file)}",
+                justify="center",
+                wraplength=400
+            )
+            error_message.pack(pady=20)
+            
+            open_button = customtkinter.CTkButton(
+                self,
+                text="Abrir PDF externamente",
+                command=lambda: os.startfile(self.file)
+            )
+            open_button.pack(pady=10)
         
     def configure(self, **kwargs):
         """configurable options"""
         if "file" in kwargs:
             self.file = kwargs.pop("file")
-            # Limpiar completamente el visualizador actual
-            for label in self.labels:
-                if label.winfo_exists():
-                    label.destroy()
-            self.labels.clear()
+            # Limpiar visualizador actual
             self.pdf_images = []
-            
+            for label in self.labels:
+                label.destroy()
+            self.labels = []
             # Reiniciar proceso de carga
-            self.loading_message.pack(pady=10)
-            self.loading_bar.pack(side="top", fill="x", padx=10)
-            self.loading_bar.set(0)
-            self.percentage_load.set("")
             self.after(250, self.start_process)
             
         if "page_width" in kwargs:
-            self._page_width = kwargs.pop("page_width")
+            self.page_width = kwargs.pop("page_width")
             for img in self.pdf_images:
-                img.configure(size=(self._page_width, self._page_height))
+                img.configure(size=(self.page_width, self.page_height))
                 
         if "page_height" in kwargs:
-            self._page_height = kwargs.pop("page_height")
+            self.page_height = kwargs.pop("page_height")
             for img in self.pdf_images:
-                img.configure(size=(self._page_width, self._page_height))
+                img.configure(size=(self.page_width, self.page_height))
             
         if "page_separation_height" in kwargs:
             self.separation = kwargs.pop("page_separation_height")
