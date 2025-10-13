@@ -12,7 +12,7 @@ class Pedido:
     """
     def __init__(self):
         # Usar un diccionario para acceso O(1)
-        self.menus: Dict[str, CrearMenu] = {}
+        self.menus: Dict[str, CrearMenu] = {}#se crea el diccionario vacio para el menu
 
     def agregar_menu(self, menu: CrearMenu):
         if menu.nombre in self.menus:
@@ -25,7 +25,7 @@ class Pedido:
                 precio=existing_menu.precio,
                 icono_path=existing_menu.icono_path,
                 cantidad=existing_menu.cantidad + 1
-            )
+            ) # incrementa la cantidad del menu en +1 o lo que s e el que se le indique
         else:
             # Si es nuevo, lo agregamos con cantidad 1
             self.menus[menu.nombre] = CrearMenu(
@@ -34,26 +34,26 @@ class Pedido:
                 precio=menu.precio,
                 icono_path=menu.icono_path,
                 cantidad=1
-            )
+            ) # solo lo agrega si es nuevo nada mas
 
-    def eliminar_menu(self, nombre_menu: str):
-        if nombre_menu in self.menus:
-            if self.menus[nombre_menu].cantidad > 1:
-                # Si hay más de uno, decrementa la cantidad
-                existing_menu = self.menus[nombre_menu]
-                self.menus[nombre_menu] = CrearMenu(
+    def eliminar_menu(self, nombre_menu: str): # elimina lo que se indique del menu
+        if nombre_menu in self.menus: # si esta en el diccionario
+            if self.menus[nombre_menu].cantidad > 1: #si la cantidad es mayor de 1 lo decrementa
+                existing_menu = self.menus[nombre_menu] # se guarda el menu en una variable
+                self.menus[nombre_menu] = CrearMenu( 
                     nombre=existing_menu.nombre,
                     ingredientes=existing_menu.ingredientes,
                     precio=existing_menu.precio,
                     icono_path=existing_menu.icono_path,
                     cantidad=existing_menu.cantidad - 1
-                )
+                ) # decrementa lo que se indique del menu solo 1
             else:
-                # Si solo queda uno, elimínalo del diccionario
-                del self.menus[nombre_menu]
+                del self.menus[nombre_menu] # si solo queda 1 lo elimina del todo
 
-    def mostrar_pedido(self) -> List[Tuple[str, int, float]]:
-        return [(menu.nombre, menu.cantidad, menu.precio) for menu in self.menus.values()]
-
-    def calcular_total(self) -> float:
+    def mostrar_pedido(self) -> List[Tuple[str, int, float]]: # muestra el pedido en una lista de tuplas
+        return [(menu.nombre, menu.cantidad, menu.precio) for menu in self.menus.values()] 
+        # retorna la lista de tuplas con el nombre, el precio, la cantidad del menu
+   
+    def calcular_total(self) -> float: # calcula el total del menu
         return sum(menu.precio * menu.cantidad for menu in self.menus.values())
+        # retorna la multiplicacion del preciop por la cantidad pedida del menu
