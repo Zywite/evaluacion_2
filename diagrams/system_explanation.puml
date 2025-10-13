@@ -1,0 +1,105 @@
+@startuml ExplicacionDelSistema
+
+skinparam monochrome false
+skinparam shadowing false
+skinparam componentStyle rectangle
+skinparam BackgroundColor #FFFFFF
+skinparam ArrowColor #303030
+
+' Definición de componentes principales
+package "Interfaz de Usuario" {
+    component "GUI Principal\nAplicacionConPestanas" as GUI
+    note right of GUI
+        Implementado con customtkinter
+        - Gestiona pestañas
+        - Maneja eventos de usuario
+        - Coordina componentes
+    end note
+}
+
+package "Gestión de Datos" {
+    component "Stock" as Stock
+    note right of Stock
+        Patrón Diccionario O(1)
+        - Optimizado para búsquedas
+        - Control de inventario
+        - Gestión de cantidades
+    end note
+
+    component "Pedido" as Pedido
+    note right of Pedido
+        Gestión de Estado
+        - Mantiene pedido actual
+        - Calcula totales
+        - Control de items
+    end note
+}
+
+package "Modelos de Datos" {
+    component "IMenu" as IMenu #E0E0E0
+    note right of IMenu
+        Protocol de Python
+        Define contrato para
+        elementos del menú
+    end note
+
+    component "Ingrediente" as Ingrediente
+    note right of Ingrediente
+        Dataclass Inmutable
+        Representa ingredientes
+        con cantidades
+    end note
+
+    component "CrearMenu" as CrearMenu
+    note right of CrearMenu
+        Implementa IMenu
+        Dataclass frozen=True
+        Inmutable y seguro
+    end note
+}
+
+package "Generación de Documentos" {
+    component "BoletaFacade" as Boleta
+    note right of Boleta
+        Patrón Facade
+        - Genera PDFs
+        - Calcula totales
+        - Gestiona boletas
+    end note
+
+    component "PDF Viewer" as PDFViewer
+    note right of PDFViewer
+        Visualización
+        - Muestra cartas
+        - Muestra boletas
+        - Vista previa
+    end note
+}
+
+' Flujos principales
+GUI --> Stock : Gestiona inventario
+GUI --> Pedido : Administra pedidos
+GUI --> PDFViewer : Muestra documentos
+Pedido --> CrearMenu : Contiene
+Stock --> Ingrediente : Gestiona
+CrearMenu --> Ingrediente : Utiliza
+CrearMenu ..> IMenu : Implementa
+Pedido --> Boleta : Genera
+Boleta --> PDFViewer : Produce
+
+' Notas de flujo de datos
+note as N1
+Flujo de Datos Principal:
+Interfaz Usuario --> Gestión Datos --> Documentos
+end note
+
+' Notas de características clave
+note as N2
+- Gestión eficiente O(1)
+- Interfaces modernas (Protocol)
+- Inmutabilidad de datos
+- Patrón Facade
+- GUI moderna con customtkinter
+end note
+
+@enduml

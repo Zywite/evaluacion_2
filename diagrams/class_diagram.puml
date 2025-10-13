@@ -1,0 +1,93 @@
+@startuml DiagramaDeClasesDelSistema
+
+' Configuración del estilo
+skinparam classAttributeIconSize 0
+skinparam monochrome false
+skinparam shadowing false
+skinparam class {
+    BackgroundColor #E0E0E0
+    BorderColor #303030
+    ArrowColor #303030
+}
+
+hide empty members
+
+' Interfaces
+interface IMenu <<Protocol>> {
+    + nombre: str
+    + ingredientes: List[Ingrediente]
+    + precio: float
+    + cantidad: int
+    + icono_path: Optional[str]
+    + esta_disponible(stock: Stock): bool
+}
+
+' Clases principales
+class AplicacionConPestanas {
+    - stock: Stock
+    - pedido: Pedido
+    - menus: List[IMenu]
+    - menus_creados: Set
+    + __init__()
+    + actualizar_treeview()
+    + crear_pestanas()
+    + ingresar_ingrediente()
+    + generar_boleta()
+    + mostrar_boleta()
+}
+
+class Stock {
+    - lista_ingredientes: Dict[str, Ingrediente]
+    + agregar_ingrediente(ingrediente: Ingrediente)
+    + eliminar_ingrediente(nombre: str)
+    + verificar_stock(): bool
+    + verificar_ingredientes_suficientes(ingredientes: List[Ingrediente]): bool
+    + reservar_ingredientes(ingredientes: List[Ingrediente])
+    + devolver_ingredientes(ingredientes: List[Ingrediente])
+}
+
+class Pedido {
+    - menus: Dict[str, CrearMenu]
+    + agregar_menu(menu: CrearMenu)
+    + eliminar_menu(nombre: str)
+    + mostrar_pedido(): List[Tuple]
+    + calcular_total(): float
+}
+
+class Ingrediente <<dataclass>> {
+    + nombre: str
+    + unidad: Optional[str]
+    + cantidad: float
+}
+
+class CrearMenu <<dataclass frozen>> {
+    + nombre: str
+    + ingredientes: List[Ingrediente]
+    + precio: float
+    + icono_path: Optional[str]
+    + cantidad: int
+    + esta_disponible(stock: Stock): bool
+}
+
+class BoletaFacade {
+    - pedido: Pedido
+    - detalle: str
+    - subtotal: float
+    - iva: float
+    - total: float
+    + generar_detalle_boleta()
+    + crear_pdf(): str
+    + generar_boleta(): str
+}
+
+' Relaciones
+AplicacionConPestanas o-- "1" Stock : usa >
+AplicacionConPestanas o-- "1" Pedido : usa >
+AplicacionConPestanas o-- "*" CrearMenu : crea >
+Stock "1" *-- "*" Ingrediente : contiene >
+Pedido "1" *-- "*" CrearMenu : contiene >
+CrearMenu "1" o-- "*" Ingrediente : usa >
+BoletaFacade o-- "1" Pedido : usa >
+CrearMenu ..|> IMenu : implements
+
+@enduml
