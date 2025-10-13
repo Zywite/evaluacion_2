@@ -135,6 +135,15 @@ El sistema está desarrollado siguiendo los principios de la programación orien
     \item \textbf{BoletaFacade}: Simplifica la generación de boletas.
 \end{itemize}
 
+\section{Tecnologías Utilizadas}
+\begin{itemize}
+    \item \textbf{Python 3.13}: Lenguaje de programación principal
+    \item \textbf{customtkinter}: Framework para la interfaz gráfica moderna
+    \item \textbf{FPDF}: Biblioteca para generación de PDFs
+    \item \textbf{PyMuPDF (fitz)}: Visualización de PDFs
+    \item \textbf{Pandas}: Procesamiento de datos CSV
+\end{itemize}
+
 \section{Implementación}
 \subsection{Gestión de Inventario}
 El sistema maneja el inventario a través de la clase Stock, que utiliza un diccionario (de tipo Dict[str, Ingrediente]) como estructura de datos principal. Esta decisión de diseño garantiza un rendimiento óptimo con complejidad $O(1)$ para todas las operaciones principales:
@@ -180,13 +189,56 @@ La gestión de pedidos se realiza mediante la clase Pedido, que ofrece:
     \item Generar boletas
 \end{itemize}
 
+\begin{lstlisting}[language=Python, caption=Implementación de Pedido]
+class Pedido:
+    def __init__(self):
+        self.menus: Dict[str, CrearMenu] = {}
+    
+    def agregar_menu(self, menu: CrearMenu):
+        if menu.nombre in self.menus:
+            self.menus[menu.nombre].cantidad += menu.cantidad
+        else:
+            self.menus[menu.nombre] = menu
+    
+    def calcular_total(self) -> float:
+        return sum(menu.precio * menu.cantidad 
+                  for menu in self.menus.values())
+\end{lstlisting}
+
 \section{Interfaz Gráfica}
 El sistema utiliza customtkinter para crear una interfaz gráfica moderna y amigable que incluye:
+
+\subsection{Componentes Principales}
 \begin{itemize}
-    \item Pestañas para diferentes funcionalidades
-    \item Visualización de menús con imágenes
-    \item Visor de PDF integrado
-    \item Formularios para gestión de inventario
+    \item \textbf{Sistema de Pestañas}:
+        \begin{itemize}
+            \item Carga de Ingredientes: Importación de CSV y gestión manual
+            \item Stock: Visualización y control de inventario
+            \item Carta Restaurante: Generación y visualización del menú en PDF
+            \item Pedido: Gestión de pedidos actuales
+            \item Boleta: Visualización y generación de boletas
+        \end{itemize}
+    \item \textbf{Elementos Visuales}:
+        \begin{itemize}
+            \item Tarjetas de menú con íconos personalizados
+            \item Visor de PDF integrado para cartas y boletas
+            \item Tablas interactivas para gestión de datos
+        \end{itemize}
+    \item \textbf{Características Avanzadas}:
+        \begin{itemize}
+            \item Validación en tiempo real de ingredientes
+            \item Actualización automática de stock
+            \item Previsualización de documentos PDF
+        \end{itemize}
+\end{itemize}
+
+\subsection{Diseño Responsivo}
+La interfaz se adapta dinámicamente al contenido y ofrece:
+\begin{itemize}
+    \item Diseño moderno con temas claro/oscuro
+    \item Feedback visual en interacciones
+    \item Mensajes de error y confirmación contextuales
+    \item Organización jerárquica de información
 \end{itemize}
 
 \section{Conclusiones}
