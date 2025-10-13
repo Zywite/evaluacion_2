@@ -8,6 +8,12 @@ env/
 venv/
 ENV/
 .env/
+
+# Generated files
+boletas/*.pdf
+*.pdf
+!informe_latex/main.pdf
+!informe_latex/images/*.pdf
 env.bak/
 venv.bak/
 
