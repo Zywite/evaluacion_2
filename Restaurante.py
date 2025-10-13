@@ -6,137 +6,150 @@ from Ingrediente import Ingrediente
 from Stock import Stock
 import re
 from PIL import Image
-from CTkMessagebox import CTkMessagebox
+from CTkMessagebox import CTkMessagebox #para los mensajes
 from Pedido import Pedido
 from BoletaFacade import BoletaFacade
-import pandas as pd
+import pandas as pd #pandas
 from Menu_catalog import get_default_menus
 from menu_pdf import create_menu_pdf
-from ctk_pdf_viewer import CTkPDFViewer
-import os
-class AplicacionConPestanas(ctk.CTk):
-    def __init__(self):
-        super().__init__()
+from ctk_pdf_viewer import CTkPDFViewer #para ver los pdf
+import os # para manejar las rutas
+#importamos todo lo que sea necesario
+
+class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para las ventanas
+    def __init__(self): # contructor
+        super().__init__() # se inicia la clase padre
         
-        self.title("Gestión de ingredientes y pedidos")
+        self.title("Gestión de ingredientes y pedidos") 
         self.geometry("870x700")
-        nametofont("TkHeadingFont").configure(size=14)
-        nametofont("TkDefaultFont").configure(size=11)
+        nametofont("TkHeadingFont").configure(size=14) 
+        nametofont("TkDefaultFont").configure(size=11) #tamaño de letra
+        #configuracion de la ventana
 
         # Configuración de estilos de botones
         self.button_styles = {
             'primary': {
                 'fg_color': "#2196F3",  # Azul material
                 'hover_color': "#1976D2",  # Azul más oscuro
-                'text_color': "white",
-                'corner_radius': 8,
-                'border_width': 0,
+                'text_color': "white", #texto color blanco
+                'corner_radius': 8, # borde redondeado
+                'border_width': 0, # sin borde
                 'font': ('Helvetica', 12)
+                #tamaño de fuente
             },
-            'secondary': {
+            'secondary': { #estilo secundario
                 'fg_color': "#4CAF50",  # Verde material
                 'hover_color': "#388E3C",  # Verde más oscuro
-                'text_color': "white",
-                'corner_radius': 8,
-                'border_width': 0,
-                'font': ('Helvetica', 12)
+                'text_color': "white", #texto color blanco
+                'corner_radius': 8, # borde redondeado
+                'border_width': 0, # sin borde
+                'font': ('Helvetica', 12) #tamaño de fuente
             },
-            'danger': {
+            'danger': { #estilo de peligro
                 'fg_color': "#F44336",  # Rojo material
                 'hover_color': "#D32F2F",  # Rojo más oscuro
-                'text_color': "white",
-                'corner_radius': 8,
-                'border_width': 0,
-                'font': ('Helvetica', 12)
+                'text_color': "white", #texto color blanco
+                'corner_radius': 8, # borde redondeado
+                'border_width': 0, # sin borde
+                'font': ('Helvetica', 12) #tamaño de fuente
             }
         }
 
-        self.stock = Stock()
-        self.menus_creados = set()
-        self.pedido = Pedido()
+        self.stock = Stock() # se crea el stock
+        self.menus_creados = set() #se crea un conjunto vacio para los menus creados
+        self.pedido = Pedido() # se crea el pedido
 
-        self.menus = get_default_menus()  
+        self.menus = get_default_menus()  # se obtienen los menus prederminados
   
-        self.tabview = ctk.CTkTabview(self,command=self.on_tab_change)
-        self.tabview.pack(expand=True, fill="both", padx=10, pady=10)
+        self.tabview = ctk.CTkTabview(self,command=self.on_tab_change) # se crea la pestaña
+        self.tabview.pack(expand=True, fill="both", padx=10, pady=10) # se empaqueta la pestaña
 
-        self.crear_pestanas()
+        self.crear_pestanas() # se crean las pestañas
 
-    def actualizar_treeview(self):
+    def actualizar_treeview(self): # se crea para actualizar el treeview
 
-        for item in self.tree.get_children():
-            self.tree.delete(item)
+        for item in self.tree.get_children(): # se recorre el treeview con un for
+            self.tree.delete(item) # se elimina el item
 
         # Iterar sobre los valores del diccionario de stock
-        for ingrediente in self.stock.lista_ingredientes.values():
+        for ingrediente in self.stock.lista_ingredientes.values(): # se recorre los ingredientes del stock
             self.tree.insert("", "end", values=(ingrediente.nombre, ingrediente.unidad, ingrediente.cantidad))    
+            #se inserta el ingrediente en el treeview
 
-    def on_tab_change(self):
-        selected_tab = self.tabview.get()
-        if selected_tab in ["carga de ingredientes", "Stock", "Pedido", "Carta restorante", "Boleta"]:
-            self.actualizar_treeview()
-    def crear_pestanas(self):
+    def on_tab_change(self): #se crea la funcion de cambio de pantalla
+        selected_tab = self.tabview.get() # se obtiene la pestaña seleccionada
+        if selected_tab in ["carga de ingredientes", "Stock", "Pedido", "Carta restorante", "Boleta"]: # si la pestaña es una de estas
+            self.actualizar_treeview() # se actualiza la pantalla
+    
+    def crear_pestanas(self): # se crea la funcion de crear las pestañas
         self.tab3 = self.tabview.add("Carga de ingredientes")  
         self.tab1 = self.tabview.add("Stock")
         self.tab4 = self.tabview.add("Carta restorante")  
         self.tab2 = self.tabview.add("Pedido")
         self.tab5 = self.tabview.add("Boleta")
-        
+        # se crean las diferente pestañas con todos sus nombres
         self.configurar_pestana1()
         self.configurar_pestana2()
         self.configurar_pestana3()
         self._configurar_pestana_crear_menu()
         self._configurar_pestana_ver_boleta()
-
-    def configurar_pestana3(self):
-        label = ctk.CTkLabel(self.tab3, text="Carga de archivo CSV")
-        label.pack(pady=20)
+        # se configuran las pestañas con sus funciones
+    def configurar_pestana3(self): # se crea la funcion para configurar la pestaña 3
+        label = ctk.CTkLabel(self.tab3, text="Carga de archivo CSV") # se crea la etiqueta
+        label.pack(pady=20) # se empaqueta la etiqueta
         boton_cargar_csv = ctk.CTkButton(
             self.tab3, 
             text="Cargar CSV",
             command=self.cargar_csv,
             **self.button_styles['primary']
         )
+        # se crea el boton de carga el csv
 
-        boton_cargar_csv.pack(pady=10)
+        boton_cargar_csv.pack(pady=10) # se empaqueta el boton
 
-        self.frame_tabla_csv = ctk.CTkFrame(self.tab3)
-        self.frame_tabla_csv.pack(fill="both", expand=True, padx=10, pady=10)
-        self.df_csv = None   
-        self.tabla_csv = None
+        self.frame_tabla_csv = ctk.CTkFrame(self.tab3) # se crea el frame de la tabla csv
+        self.frame_tabla_csv.pack(fill="both", expand=True, padx=10, pady=10) # se empaqueta el frame
+        self.df_csv = None   # se crea el dataframe vacio
+        self.tabla_csv = None # se crea la tabla vacia
 
-        self.boton_agregar_stock = ctk.CTkButton(self.frame_tabla_csv, text="Agregar al Stock")
-        self.boton_agregar_stock.pack(side="bottom", pady=10)
+        self.boton_agregar_stock = ctk.CTkButton(self.frame_tabla_csv, text="Agregar al Stock") # se crea el boton para agragar el stock
+        self.boton_agregar_stock.pack(side="bottom", pady=10) # se empaqueta el boton
  
-    def agregar_csv_al_stock(self):
-        if self.df_csv is None:
-            CTkMessagebox(title="Error", message="Primero debes cargar un archivo CSV.", icon="warning")
-            return
+    def agregar_csv_al_stock(self): # se crea la funcion para agregra el csv al stock
+        if self.df_csv is None: # se verifica el dataframe
+            CTkMessagebox(title="Error", message="Primero debes cargar un archivo CSV.", icon="warning") # mensaje de error
+            return # retorna el mensaje de error
 
-        if 'nombre' not in self.df_csv.columns or 'cantidad' not in self.df_csv.columns:
-            CTkMessagebox(title="Error", message="El CSV debe tener columnas 'nombre' y 'cantidad'.", icon="warning")
-            return
-        for _, row in self.df_csv.iterrows():
+        if 'nombre' not in self.df_csv.columns or 'cantidad' not in self.df_csv.columns: # verifica la columnas del csv
+            CTkMessagebox(title="Error", message="El CSV debe tener columnas 'nombre' y 'cantidad'.", icon="warning") # mensaje de error
+            return # retorna el mensaje de error
+        
+        for _, row in self.df_csv.iterrows(): # recorre las filas dell csv
             nombre = str(row['nombre'])
             cantidad = float(str(row['cantidad']))
-            unidad = str(row['unidad'])
-            ingrediente = Ingrediente(nombre=nombre,unidad=unidad,cantidad=cantidad)
-            self.stock.agregar_ingrediente(ingrediente)
+            unidad = str(row['unidad']) 
+            # si no existe la unidad se pone unid por defecto
+            ingrediente = Ingrediente(nombre=nombre,unidad=unidad,cantidad=cantidad) # se crea el ingredientes con sus datos
+            self.stock.agregar_ingrediente(ingrediente) # se agrega el ingrediente al stock
         CTkMessagebox(title="Stock Actualizado", message="Ingredientes agregados al stock correctamente.", icon="info")
-        self.actualizar_treeview()   
+        # mensaje de exito
+        self.actualizar_treeview()   # se actualiza la pantalla
 
-    def cargar_csv(self):
+    def cargar_csv(self): # se crea la funcion para cargar el csv
         archivo = filedialog.askopenfilename(
             title="Seleccionar archivo CSV",
             filetypes=[("CSV files", "*.csv")]
         )
-        if archivo:
-            try:
-                self.df_csv = pd.read_csv(archivo)
-                if not all(col in self.df_csv.columns for col in ['nombre', 'unidad', 'cantidad']):
+        # se selecciona el archivo csv
+       
+        if archivo: # si se selecciona un archivo
+            try: # se intenta cargar el archivo
+                self.df_csv = pd.read_csv(archivo) # se carga el archivo csv
+                if not all(col in self.df_csv.columns for col in ['nombre', 'unidad', 'cantidad']): # verifica la columnas del csv
                     CTkMessagebox(title="Error", message="El archivo CSV debe contener las columnas: nombre, unidad y cantidad", icon="warning")
-                    return
-                self.mostrar_dataframe_en_tabla(self.df_csv)
+                    # se detiene la carga del archivo
+                    return # retorna el mensaje de error
+                self.mostrar_dataframe_en_tabla(self.df_csv) # se muestea el dataframe en la tabla
                 self.boton_agregar_stock.configure(command=self.agregar_csv_al_stock)
             except Exception as e:
                 CTkMessagebox(title="Error", message=f"Error al cargar el archivo CSV: {str(e)}", icon="warning")
