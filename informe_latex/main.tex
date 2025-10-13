@@ -12,14 +12,16 @@
 \usepackage{titling}
 
 % Configuración del encabezado y pie de página
+\setlength{\headheight}{50pt} % Aumentamos la altura del encabezado para el logo
+\addtolength{\topmargin}{-35pt} % Ajustamos el margen superior
 \pagestyle{fancy}
 \fancyhf{}
 \renewcommand{\headrulewidth}{1pt}
 \renewcommand{\footrulewidth}{1pt}
-\fancyhead[L]{Universidad Católica de Temuco}
-\fancyhead[R]{Programación II}
-\fancyfoot[C]{Página \thepage\ de \pageref{LastPage}}
-\fancyfoot[R]{Octubre 2025}
+\fancyhead[L]{\includegraphics[height=35pt]{images/logo_uct.png}}
+\fancyhead[R]{Programación~II}
+\fancyfoot[C]{Página~\thepage~de~\pageref{LastPage}}
+\fancyfoot[R]{Octubre~2025}
 
 % Aumentar el espacio superior del título
 \setlength{\droptitle}{-4em}
@@ -52,7 +54,7 @@
 \lstset{style=mystyle}
 
 \title{\textbf{Sistema de Gestión de Restaurante}\\
-\large Evaluación 2 -- Programación II\\
+\large Evaluación 2 --- Programación II\\
 \vspace{0.5cm}
 \normalsize Universidad Católica de Temuco\\
 \normalsize Facultad de Ingeniería\\
@@ -104,7 +106,7 @@ El sistema está desarrollado siguiendo los principios de la programación orien
 \subsection{Patrones de Diseño Utilizados}
 \begin{itemize}
     \item \textbf{Patrón Facade}: Implementado en la clase BoletaFacade para simplificar la generación de boletas.
-    \item \textbf{Patrón Interface}: Utilizado en IMenu para definir el contrato de los elementos del menú.
+    \item \textbf{Protocol (Interfaz moderna)}: Utilizado en IMenu para definir el contrato de los elementos del menú. Se implementa usando el módulo typing.Protocol de Python, que proporciona una forma más flexible y moderna de definir interfaces.
     \item \textbf{Patrón Composite}: Aplicado en la estructura de menús e ingredientes.
 \end{itemize}
 
@@ -113,16 +115,14 @@ El sistema está desarrollado siguiendo los principios de la programación orien
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{./images/diagrama.png}
-    \caption{Diagrama de Clases del Sistema}
-    \label{fig:diagrama}
+    \caption{Diagrama de Clases del Sistema}\label{fig:diagrama}
 \end{figure}
 
 \subsection{Explicación del Diagrama}
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{./images/explicacion_diagrama.png}
-    \caption{Explicación Detallada de las Relaciones entre Clases}
-    \label{fig:explicacion-diagrama}
+    \caption{Explicación Detallada de las Relaciones entre Clases}\label{fig:explicacion-diagrama}
 \end{figure}
 
 \subsection{Descripción de las Clases}
@@ -137,13 +137,39 @@ El sistema está desarrollado siguiendo los principios de la programación orien
 
 \section{Implementación}
 \subsection{Gestión de Inventario}
-El sistema maneja el inventario a través de la clase Stock, que permite:
+El sistema maneja el inventario a través de la clase Stock, que utiliza un diccionario (de tipo Dict[str, Ingrediente]) como estructura de datos principal. Esta decisión de diseño garantiza un rendimiento óptimo con complejidad $O(1)$ para todas las operaciones principales:
+
 \begin{itemize}
     \item Agregar nuevos ingredientes
     \item Eliminar ingredientes existentes
     \item Verificar disponibilidad
     \item Actualizar cantidades
 \end{itemize}
+
+A continuación, se muestra un ejemplo de la implementación del manejo de stock:
+
+\begin{lstlisting}[language=Python, caption=Implementación de Stock]
+class Stock:
+    def __init__(self):
+        self.lista_ingredientes: Dict[str, Ingrediente] = {}
+
+    def agregar_ingrediente(self, ingrediente: Ingrediente):
+        if ingrediente.nombre in self.lista_ingredientes:
+            ing_existente = self.lista_ingredientes[ingrediente.nombre]
+            nueva_cantidad = ing_existente.cantidad + ingrediente.cantidad
+            ing_existente.cantidad = round(nueva_cantidad, 1)
+        else:
+            ingrediente.cantidad = round(ingrediente.cantidad, 1)
+            self.lista_ingredientes[ingrediente.nombre] = ingrediente
+
+    def verificar_ingredientes_suficientes(self, 
+            ingredientes_necesarios: List[Ingrediente]) -> bool:
+        for ing_necesario in ingredientes_necesarios:
+            ing_stock = self.lista_ingredientes.get(ing_necesario.nombre)
+            if ing_stock is None or ing_stock.cantidad < ing_necesario.cantidad:
+                return False
+        return True
+\end{lstlisting}
 
 \subsection{Sistema de Pedidos}
 La gestión de pedidos se realiza mediante la clase Pedido, que ofrece:
@@ -164,7 +190,17 @@ El sistema utiliza customtkinter para crear una interfaz gráfica moderna y amig
 \end{itemize}
 
 \section{Conclusiones}
-El sistema desarrollado cumple con los objetivos planteados, proporcionando una solución integral para la gestión de restaurantes. La implementación de patrones de diseño y principios de programación orientada a objetos permite una estructura mantenible y extensible.
+El sistema desarrollado cumple con los objetivos planteados, proporcionando una solución integral para la gestión de restaurantes. La implementación de patrones de diseño modernos como Protocol y principios de programación orientada a objetos permite una estructura mantenible y extensible. El uso de estructuras de datos optimizadas, como diccionarios para el manejo de inventario, asegura un rendimiento eficiente incluso con grandes volúmenes de datos.
+
+Las decisiones de diseño tomadas, como:
+\begin{itemize}
+    \item El uso de typing.Protocol para interfaces modernas
+    \item La implementación de diccionarios para operaciones $O(1)$ en el stock
+    \item La aplicación del patrón Facade para simplificar operaciones complejas
+    \item La utilización de customtkinter para una interfaz gráfica moderna
+\end{itemize}
+
+Han resultado en un sistema robusto, eficiente y fácil de mantener que cumple con los requisitos del proyecto y permite futuras extensiones.
 
 \section{Anexos}
 \subsection{Código Fuente}
