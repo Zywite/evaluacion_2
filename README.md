@@ -1,23 +1,22 @@
 # Sistema de Gestión de Restaurante
 
-[![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://python.org)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
-Sistema de gestión para restaurantes implementado en Python con una moderna interfaz gráfica construida con el framework `customtkinter`.
+Sistema de gestión para restaurantes implementado en Python con interfaz gráfica usando customtkinter.
 
 ## Características
 
 - Gestión de inventario de ingredientes
-- Sistema de pedidos y toma de órdenes en tiempo real.
-- Generación de boletas en formato PDF.
-- Visualizador de documentos PDF integrado para la carta y las boletas.
-- Carga de ingredientes desde archivos CSV.
-- Interfaz gráfica moderna y personalizable.
+- Sistema de pedidos
+- Generación de boletas
+- Visualización de menú en PDF
+- Interfaz gráfica moderna
 
 ## Requisitos
 
-- Python 3.10 o superior.
-- Todas las dependencias están listadas en el archivo `requirements.txt`.
+- Python 3.x
+- customtkinter
+- Pillow (PIL)
+- PyMuPDF
+- pandas
 
 ## Instalación
 

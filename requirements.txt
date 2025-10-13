@@ -4,3 +4,5 @@ PyMuPDF>=1.23.0  # para el visor de PDF
 pandas>=2.1.0    # para manejo de CSV
 CTkMessagebox>=2.5  # para diálogos modernos
 fpdf>=1.7.2     # para generación de PDFs
+dataclasses    # incluido en Python 3.7+
+typing         # incluido en Python 3.7+
