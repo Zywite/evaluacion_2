@@ -1,93 +1,85 @@
-@startuml DiagramaDeClasesDelSistema
-
-' Configuración del estilo
+@startuml
+' skinparam para mejorar la apariencia
 skinparam classAttributeIconSize 0
-skinparam monochrome false
-skinparam shadowing false
+skinparam style strictuml
 skinparam class {
-    BackgroundColor #E0E0E0
-    BorderColor #303030
-    ArrowColor #303030
+    ArrowColor #2196F3
+    BorderColor #2196F3
+    BackgroundColor #ECEFF1
+}
+skinparam note {
+    BorderColor #2196F3
+    BackgroundColor #E3F2FD
 }
 
-hide empty members
-
-' Interfaces
-interface IMenu <<Protocol>> {
-    + nombre: str
-    + ingredientes: List[Ingrediente]
-    + precio: float
-    + cantidad: int
-    + icono_path: Optional[str]
-    + esta_disponible(stock: Stock): bool
+' Interfaz y Clases
+interface IMenu {
+  +nombre: str
+  +precio: float
+  +esta_disponible(stock: Stock): bool
 }
 
-' Clases principales
-class AplicacionConPestanas {
-    - stock: Stock
-    - pedido: Pedido
-    - menus: List[IMenu]
-    - menus_creados: Set
-    + __init__()
-    + actualizar_treeview()
-    + crear_pestanas()
-    + ingresar_ingrediente()
-    + generar_boleta()
-    + mostrar_boleta()
+class CrearMenu {
+  +CrearMenu(nombre, ingredientes, precio)
+  +nombre: str
+  +precio: float
+  +ingredientes: List[Ingrediente]
+}
+
+class Ingrediente {
+  +Ingrediente(nombre, cantidad, unidad)
+  +nombre: str
+  +cantidad: float
+  +unidad: str
 }
 
 class Stock {
-    - lista_ingredientes: Dict[str, Ingrediente]
-    + agregar_ingrediente(ingrediente: Ingrediente)
-    + eliminar_ingrediente(nombre: str)
-    + verificar_stock(): bool
-    + verificar_ingredientes_suficientes(ingredientes: List[Ingrediente]): bool
-    + reservar_ingredientes(ingredientes: List[Ingrediente])
-    + devolver_ingredientes(ingredientes: List[Ingrediente])
+  +Stock()
+  +lista_ingredientes: Dict[str, Ingrediente]
+  +agregar_ingrediente(ing: Ingrediente)
+  +reservar_ingredientes(ings: List[Ingrediente])
 }
 
 class Pedido {
-    - menus: Dict[str, CrearMenu]
-    + agregar_menu(menu: CrearMenu)
-    + eliminar_menu(nombre: str)
-    + mostrar_pedido(): List[Tuple]
-    + calcular_total(): float
-}
-
-class Ingrediente <<dataclass>> {
-    + nombre: str
-    + unidad: Optional[str]
-    + cantidad: float
-}
-
-class CrearMenu <<dataclass frozen>> {
-    + nombre: str
-    + ingredientes: List[Ingrediente]
-    + precio: float
-    + icono_path: Optional[str]
-    + cantidad: int
-    + esta_disponible(stock: Stock): bool
+  +Pedido()
+  +menus: Dict[str, CrearMenu]
+  +agregar_menu(menu: CrearMenu)
+  +calcular_total(): float
 }
 
 class BoletaFacade {
-    - pedido: Pedido
-    - detalle: str
-    - subtotal: float
-    - iva: float
-    - total: float
-    + generar_detalle_boleta()
-    + crear_pdf(): str
-    + generar_boleta(): str
+  +BoletaFacade(pedido: Pedido)
+  +generar_boleta(): string
+}
+
+class Restaurante {
+  +Restaurante()
+  -stock: Stock
+  -pedido: Pedido
+  +generar_boleta()
 }
 
 ' Relaciones
-AplicacionConPestanas o-- "1" Stock : usa >
-AplicacionConPestanas o-- "1" Pedido : usa >
-AplicacionConPestanas o-- "*" CrearMenu : crea >
-Stock "1" *-- "*" Ingrediente : contiene >
-Pedido "1" *-- "*" CrearMenu : contiene >
-CrearMenu "1" o-- "*" Ingrediente : usa >
-BoletaFacade o-- "1" Pedido : usa >
-CrearMenu ..|> IMenu : implements
+Restaurante "1" *-- "1" Stock
+Restaurante "1" *-- "1" Pedido
+Restaurante ..> BoletaFacade : "usa"
+
+BoletaFacade ..> Pedido : "usa para generar"
+
+Pedido "1" o-- "*" CrearMenu
+Stock "1" o-- "*" Ingrediente
+CrearMenu "1" *-- "*" Ingrediente
+CrearMenu ..|> IMenu
+
+note right of Restaurante
+  La clase principal de la aplicación
+  que coordina las interacciones.
+end note
+
+note bottom of BoletaFacade
+  Simplifica la creación de la boleta en PDF,
+  ocultando la complejidad interna.
+  (Patrón Facade)
+end note
 
 @enduml
