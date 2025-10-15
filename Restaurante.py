@@ -67,7 +67,6 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
         self.crear_pestanas() # se crean las pestañas
 
     def actualizar_treeview(self): # se crea para actualizar el treeview
-
         for item in self.tree.get_children(): # se recorre el treeview con un for
             self.tree.delete(item) # se elimina el item
 
@@ -75,6 +74,9 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
         for ingrediente in self.stock.lista_ingredientes.values(): # se recorre los ingredientes del stock
             self.tree.insert("", "end", values=(ingrediente.nombre, ingrediente.unidad, ingrediente.cantidad))    
             #se inserta el ingrediente en el treeview
+        
+        # Actualizar la visualización de los menús cuando cambia el stock
+        self.actualizar_menus()
 
     def on_tab_change(self): #se crea la funcion de cambio de pantalla
         selected_tab = self.tabview.get() # se obtiene la pestaña seleccionada
@@ -360,36 +362,99 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
         for menu in self.menus:
             self.crear_tarjeta(menu)
             self.menus_creados.add(menu)
+            
+    def actualizar_menus(self):
+        """Actualiza la visualización de los menús cuando cambia el stock"""
+        if hasattr(self, 'menus_creados'):
+            self.generar_menus()
 
     def eliminar_menu(self):
         seleccion = self.treeview_menu.selection()
         if not seleccion:
-            CTkMessagebox(title="Error", message="Por favor, seleccione un menú para eliminar.", icon="warning")
+            CTkMessagebox(title="Error", message="Por favor, seleccione uno o más menús para eliminar.", icon="warning")
             return
 
-        item = self.treeview_menu.item(seleccion[0])
-        nombre_menu = item['values'][0]
-        
-        # Encontrar el menú que se va a eliminar
-        menu_a_eliminar = None
-        for menu in self.pedido.menus.values():
-            if menu.nombre == nombre_menu:
-                menu_a_eliminar = menu
-                break
+        # Preguntar confirmación si se seleccionaron múltiples menús
+        if len(seleccion) > 1:
+            msg = CTkMessagebox(
+                title="Confirmar eliminación",
+                message=f"¿Estás seguro de que deseas eliminar {len(seleccion)} menús seleccionados?",
+                icon="warning",
+                option_1="Sí",
+                option_2="No"
+            )
+            if msg.get() != "Sí":
+                return
+
+        # Procesar cada menú seleccionado
+        for sel in seleccion:
+            item = self.treeview_menu.item(sel)
+            nombre_menu = item['values'][0]
+            
+            # Encontrar el menú que se va a eliminar
+            menu_a_eliminar = None
+            for menu in self.pedido.menus.values():
+                if menu.nombre == nombre_menu:
+                    menu_a_eliminar = menu
+                    break
+                    
+            if menu_a_eliminar:
+                # Ajustar la cantidad de ingredientes a devolver
+                ingredientes_ajustados = []
+                for ingrediente in menu_a_eliminar.ingredientes:
+                    ing_ajustado = Ingrediente(
+                        nombre=ingrediente.nombre,
+                        unidad=ingrediente.unidad,
+                        cantidad=ingrediente.cantidad * menu_a_eliminar.cantidad
+                    )
+                    ingredientes_ajustados.append(ing_ajustado)
                 
-        if menu_a_eliminar:
-            # Devolver los ingredientes al stock por cada unidad del menú
-            for _ in range(menu_a_eliminar.cantidad):
-                self.stock.devolver_ingredientes(menu_a_eliminar.ingredientes)
-            
-            # Eliminar del pedido
-            self.pedido.eliminar_menu(nombre_menu)
-            
-            # Actualizar vistas
-            self.actualizar_treeview_pedido()
-            self.actualizar_treeview()
-            total = self.pedido.calcular_total()
-            self.label_total.configure(text=f"Total: ${total:.2f}")
+                # Devolver los ingredientes al stock
+                self.stock.devolver_ingredientes(ingredientes_ajustados)
+                
+                # Eliminar del pedido
+                self.pedido.eliminar_menu(nombre_menu)
+        
+        # Actualizar vistas
+        self.actualizar_treeview_pedido()
+        self.actualizar_treeview()
+        total = self.pedido.calcular_total()
+        self.label_total.configure(text=f"Total: ${total:.2f}")
+
+    def eliminar_todo(self):
+        if not self.pedido.menus:
+            CTkMessagebox(title="Error", message="No hay menús en el pedido.", icon="warning")
+            return
+
+        msg = CTkMessagebox(
+            title="Confirmar eliminación",
+            message="¿Estás seguro de que deseas eliminar todo el pedido?",
+            icon="warning",
+            option_1="Sí",
+            option_2="No"
+        )
+        if msg.get() != "Sí":
+            return
+
+        # Devolver todos los ingredientes al stock
+        for menu in self.pedido.menus.values():
+            ingredientes_ajustados = []
+            for ingrediente in menu.ingredientes:
+                ing_ajustado = Ingrediente(
+                    nombre=ingrediente.nombre,
+                    unidad=ingrediente.unidad,
+                    cantidad=ingrediente.cantidad * menu.cantidad
+                )
+                ingredientes_ajustados.append(ing_ajustado)
+            self.stock.devolver_ingredientes(ingredientes_ajustados)
+
+        # Crear un nuevo pedido vacío
+        self.pedido = Pedido()
+        
+        # Actualizar vistas
+        self.actualizar_treeview_pedido()
+        self.actualizar_treeview()
+        self.label_total.configure(text="Total: $0.00")
 
     def generar_boleta(self):
         if not self.pedido.menus:
@@ -438,8 +503,25 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
         tarjetas_frame = ctk.CTkFrame(frame_superior)
         tarjetas_frame.pack(expand=True, fill="both", padx=10, pady=10)
 
-        self.boton_eliminar_menu = ctk.CTkButton(frame_intermedio, text="Eliminar Menú", command=self.eliminar_menu)
-        self.boton_eliminar_menu.pack(side="right", padx=10)
+        # Frame para los botones de control
+        frame_botones = ctk.CTkFrame(frame_intermedio)
+        frame_botones.pack(side="right", padx=10)
+
+        self.boton_eliminar_menu = ctk.CTkButton(
+            frame_botones, 
+            text="Eliminar Seleccionados", 
+            command=self.eliminar_menu,
+            **self.button_styles['danger']
+        )
+        self.boton_eliminar_menu.pack(side="right", padx=5)
+
+        self.boton_eliminar_todo = ctk.CTkButton(
+            frame_botones, 
+            text="Limpiar Pedido", 
+            command=self.eliminar_todo,
+            **self.button_styles['danger']
+        )
+        self.boton_eliminar_todo.pack(side="right", padx=5)
 
         self.label_total = ctk.CTkLabel(frame_intermedio, text="Total: $0.00", anchor="e", font=("Helvetica", 12, "bold"))
         self.label_total.pack(side="right", padx=10)
@@ -466,42 +548,64 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
         fila = 0
         columna = num_tarjetas
 
+        # Verificar si hay suficientes ingredientes
+        hay_ingredientes = self.stock.verificar_ingredientes_suficientes(menu.ingredientes)
+
+        # Configurar el estilo de la tarjeta según disponibilidad
         tarjeta = ctk.CTkFrame(
             tarjetas_frame,
             corner_radius=10,
             border_width=1,
-            border_color="#4CAF50",
+            border_color="#4CAF50" if hay_ingredientes else "#FF0000",
             width=64,
             height=140,
-            fg_color="gray",
+            fg_color="gray" if hay_ingredientes else "#808080",  # Gris más oscuro si no hay ingredientes
         )
         tarjeta.grid(row=fila, column=columna, padx=15, pady=15, sticky="nsew")
 
-        tarjeta.bind("<Button-1>", lambda event: self.tarjeta_click(event, menu))
-        tarjeta.bind("<Enter>", lambda event: tarjeta.configure(border_color="#FF0000"))
-        tarjeta.bind("<Leave>", lambda event: tarjeta.configure(border_color="#4CAF50"))
+        # Solo permitir interacción si hay ingredientes suficientes
+        if hay_ingredientes:
+            tarjeta.bind("<Button-1>", lambda event: self.tarjeta_click(event, menu))
+            tarjeta.bind("<Enter>", lambda event: tarjeta.configure(border_color="#FF0000"))
+            tarjeta.bind("<Leave>", lambda event: tarjeta.configure(border_color="#4CAF50"))
 
         if getattr(menu, "icono_path", None):
             try:
                 icono = self.cargar_icono_menu(menu.icono_path)
                 imagen_label = ctk.CTkLabel(
-                    tarjeta, image=icono, width=64, height=64, text="", bg_color="transparent"
+                    tarjeta, 
+                    image=icono, 
+                    width=64, 
+                    height=64, 
+                    text="", 
+                    bg_color="transparent"
                 )
-                # No es necesario guardar la referencia del icono en customtkinter
+                
+                # Aplicar efecto visual si no hay ingredientes suficientes
+                if not hay_ingredientes:
+                    imagen_label.configure(fg_color="gray50")  # Color semitransparente
+                
                 imagen_label.pack(anchor="center", pady=5, padx=10)
-                imagen_label.bind("<Button-1>", lambda event: self.tarjeta_click(event, menu))
+                if hay_ingredientes:
+                    imagen_label.bind("<Button-1>", lambda event: self.tarjeta_click(event, menu))
             except Exception as e:
                 print(f"No se pudo cargar la imagen '{menu.icono_path}': {e}")
 
+        # Crear el texto del menú
+        nombre_texto = f"{menu.nombre}"
+        if not hay_ingredientes:
+            nombre_texto += "\n(No disponible)"
+        
         texto_label = ctk.CTkLabel(
             tarjeta,
-            text=f"{menu.nombre}",
-            text_color="black",
+            text=nombre_texto,
+            text_color="black" if hay_ingredientes else "gray30",  # Texto más oscuro si no disponible
             font=("Helvetica", 12, "bold"),
             bg_color="transparent",
         )
         texto_label.pack(anchor="center", pady=1)
-        texto_label.bind("<Button-1>", lambda event: self.tarjeta_click(event, menu))
+        if hay_ingredientes:
+            texto_label.bind("<Button-1>", lambda event: self.tarjeta_click(event, menu))
 
     def validar_nombre(self, nombre):
         if re.match(r"^[a-zA-Z\s]+$", nombre):
