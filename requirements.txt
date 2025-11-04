@@ -6,3 +6,5 @@ CTkMessagebox>=2.5  # para diálogos modernos
 fpdf>=1.7.2     # para generación de PDFs
 dataclasses    # incluido en Python 3.7+
 typing         # incluido en Python 3.7+
+SQLAlchemy>=2.0.0
+psycopg2-binary>=2.9.0

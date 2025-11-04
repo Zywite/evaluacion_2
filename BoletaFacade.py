@@ -1,6 +1,9 @@
 from fpdf import FPDF
 from datetime import datetime
 import os
+from database import get_db_session
+from models import Pedido as PedidoModel, PedidoItem, Menu
+from sqlalchemy.orm import Session, joinedload
 
 class BoletaFacade:
     """
@@ -11,22 +14,35 @@ class BoletaFacade:
     El cliente (en este caso, la clase Restaurante) solo necesita interactuar con esta fachada,
     sin preocuparse por los detalles internos de la creación del PDF.
     """
-    def __init__(self, pedido):
-        self.pedido = pedido
-        self.detalle = ""
+    def __init__(self, pedido_id):
+        self.pedido_id = pedido_id
+        self.detalle_items = []
         self.subtotal = 0
         self.iva = 0
         self.total = 0
+        self.fecha_pedido = ""
 
     def generar_detalle_boleta(self):
-        self.detalle = ""
-        for item in self.pedido.menus.values():
-            subtotal = item.precio * item.cantidad
-            self.detalle += f"{item.nombre:<30} {item.cantidad:<10} ${item.precio:<10.2f} ${subtotal:<10.2f}\n"
-        
-        self.subtotal = self.pedido.calcular_total()
-        self.iva = self.subtotal * 0.19
-        self.total = self.subtotal + self.iva
+        session: Session = get_db_session()
+        try:
+            pedido_db = session.query(PedidoModel).options(
+                joinedload(PedidoModel.items).joinedload(PedidoItem.menu)
+            ).filter(PedidoModel.id == self.pedido_id).one_or_none()
+
+            if pedido_db:
+                self.fecha_pedido = pedido_db.fecha
+                self.total = float(pedido_db.total)
+                self.subtotal = round(self.total / 1.19, 2)
+                self.iva = round(self.total - self.subtotal, 2)
+
+                for item in pedido_db.items:
+                    self.detalle_items.append({
+                        'nombre': item.menu.nombre,
+                        'cantidad': item.cantidad,
+                        'precio_unitario': float(item.precio_unitario)
+                    })
+        finally:
+            session.close()
 
     def crear_pdf(self):
         pdf = FPDF()
@@ -40,7 +56,7 @@ class BoletaFacade:
         pdf.cell(0, 10, "RUT: 12345678-9", ln=True, align='L')
         pdf.cell(0, 10, "Dirección: Calle Falsa 123", ln=True, align='L')
         pdf.cell(0, 10, "Teléfono: +56 9 1234 5678", ln=True, align='L')
-        pdf.cell(0, 10, f"Fecha: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}", ln=True, align='R')
+        pdf.cell(0, 10, f"Fecha: {self.fecha_pedido.strftime('%d/%m/%Y %H:%M:%S')}", ln=True, align='R')
         pdf.ln(10)
         
         pdf.set_font("Arial", 'B', 12)
@@ -51,12 +67,15 @@ class BoletaFacade:
         pdf.ln()
         
         pdf.set_font("Arial", size=12)
-        for item in self.pedido.menus.values():
-            subtotal = item.precio * item.cantidad
-            pdf.cell(70, 10, item.nombre, border=1)
-            pdf.cell(20, 10, str(item.cantidad), border=1)
-            pdf.cell(35, 10, f"${item.precio:.2f}", border=1)
-            pdf.cell(30, 10, f"${subtotal:.2f}", border=1)
+        for item in self.detalle_items:
+            nombre = item['nombre']
+            cantidad = item['cantidad']
+            precio_unitario = item['precio_unitario']
+            subtotal_item = precio_unitario * cantidad
+            pdf.cell(70, 10, nombre, border=1)
+            pdf.cell(20, 10, str(cantidad), border=1)
+            pdf.cell(35, 10, f"${precio_unitario:.2f}", border=1)
+            pdf.cell(30, 10, f"${subtotal_item:.2f}", border=1)
             pdf.ln()
 
         pdf.set_font("Arial", 'B', 12)

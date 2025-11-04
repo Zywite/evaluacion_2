@@ -1,3 +1,4 @@
+from decimal import Decimal
 import customtkinter as ctk
 from tkinter import ttk
 from tkinter import filedialog
@@ -10,14 +11,17 @@ from CTkMessagebox import CTkMessagebox #para los mensajes
 from Pedido import Pedido
 from BoletaFacade import BoletaFacade
 import pandas as pd #pandas
-from Menu_catalog import get_default_menus
 from menu_pdf import create_menu_pdf
 from ctk_pdf_viewer import CTkPDFViewer #para ver los pdf
 import os # para manejar las rutas
+from database import initialize_database
+from Menu_catalog import get_default_menus, save_default_menus_to_db
 #importamos todo lo que sea necesario
 
 class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para las ventanas
-    def __init__(self): # contructor
+    def __init__(self):
+        initialize_database() # Initialize the database
+        save_default_menus_to_db() # Populate default menus if not already in DB
         super().__init__() # se inicia la clase padre
         
         self.title("Gestión de ingredientes y pedidos") 
@@ -128,7 +132,7 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
         
         for _, row in self.df_csv.iterrows(): # recorre las filas dell csv
             nombre = str(row['nombre'])
-            cantidad = float(str(row['cantidad']))
+            cantidad = Decimal(str(row['cantidad']))
             unidad = str(row['unidad']) 
             # si no existe la unidad se pone unid por defecto
             ingrediente = Ingrediente(nombre=nombre,unidad=unidad,cantidad=cantidad) # se crea el ingredientes con sus datos
@@ -354,7 +358,7 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
     
     def generar_menus(self):
         # Limpiar el frame de tarjetas existente
-        for widget in tarjetas_frame.winfo_children():
+        for widget in self.tarjetas_frame.winfo_children():
             widget.destroy()
         
         # Recrear todas las tarjetas
@@ -462,7 +466,8 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
             return
 
         try:
-            boleta = BoletaFacade(self.pedido)
+            pedido_id = self.pedido.guardar_pedido()
+            boleta = BoletaFacade(pedido_id)
             pdf_path = boleta.generar_boleta()  # Ahora devuelve directamente la ruta del archivo
             
             if not os.path.exists(pdf_path):
@@ -499,9 +504,8 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
         frame_intermedio = ctk.CTkFrame(self.tab2)
         frame_intermedio.pack(side="top", fill="x", padx=10, pady=5)
 
-        global tarjetas_frame
-        tarjetas_frame = ctk.CTkFrame(frame_superior)
-        tarjetas_frame.pack(expand=True, fill="both", padx=10, pady=10)
+        self.tarjetas_frame = ctk.CTkFrame(frame_superior)
+        self.tarjetas_frame.pack(expand=True, fill="both", padx=10, pady=10)
 
         # Frame para los botones de control
         frame_botones = ctk.CTkFrame(frame_intermedio)
@@ -553,7 +557,7 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
 
         # Configurar el estilo de la tarjeta según disponibilidad
         tarjeta = ctk.CTkFrame(
-            tarjetas_frame,
+            self.tarjetas_frame,
             corner_radius=10,
             border_width=1,
             border_color="#4CAF50" if hay_ingredientes else "#FF0000",
@@ -629,7 +633,7 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
         if not self.validar_nombre(nombre) or not self.validar_cantidad(cantidad):
             return
 
-        ingrediente = Ingrediente(nombre=nombre, unidad=unidad, cantidad=float(cantidad))
+        ingrediente = Ingrediente(nombre=nombre, unidad=unidad, cantidad=Decimal(cantidad))
         self.stock.agregar_ingrediente(ingrediente)
         self.actualizar_treeview()
 
