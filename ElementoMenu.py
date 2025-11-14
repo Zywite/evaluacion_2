@@ -12,6 +12,7 @@ class CrearMenu(IMenu):
     'frozen=True' garantiza que una vez creado, un objeto de menú no puede ser modificado,
     lo que previene errores al obligar a crear nuevas instancias para cualquier cambio (ej. al cambiar la cantidad en un pedido).
     """
+    id: int
     nombre: str
     ingredientes: List[Ingrediente] = field(hash=False, compare=False)
     precio: Decimal = field(default=Decimal('0.0'), compare=False)

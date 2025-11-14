@@ -6,6 +6,14 @@ from typing import List
 
 Base = declarative_base()
 
+class Cliente(Base):
+    __tablename__ = 'clientes'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    nombre: Mapped[str] = mapped_column(String(100), nullable=False)
+    apellido: Mapped[str] = mapped_column(String(100), nullable=False)
+    email: Mapped[str] = mapped_column(String(191), unique=True, nullable=False)
+    pedidos: Mapped[List["Pedido"]] = relationship(back_populates="cliente")
+
 class Ingrediente(Base):
     __tablename__ = 'ingredientes'
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -32,8 +40,12 @@ class MenuIngrediente(Base):
 class Pedido(Base):
     __tablename__ = 'pedidos'
     id: Mapped[int] = mapped_column(primary_key=True)
+    cliente_id: Mapped[int] = mapped_column(ForeignKey('clientes.id'))
     fecha: Mapped[datetime.datetime] = mapped_column(DateTime, default=datetime.datetime.utcnow)
+    estado: Mapped[str] = mapped_column(String(50), default='pendiente')
+    tipo_entrega: Mapped[str] = mapped_column(String(50))
     total: Mapped[Decimal] = mapped_column(DECIMAL(10, 2))
+    cliente: Mapped["Cliente"] = relationship(back_populates="pedidos")
     items: Mapped[List["PedidoItem"]] = relationship(back_populates="pedido")
 
 class PedidoItem(Base):
@@ -43,5 +55,6 @@ class PedidoItem(Base):
     menu_id: Mapped[int] = mapped_column(ForeignKey('menus.id'))
     cantidad: Mapped[int]
     precio_unitario: Mapped[Decimal] = mapped_column(DECIMAL(10, 2))
+    subtotal: Mapped[Decimal] = mapped_column(DECIMAL(10, 2))
     pedido: Mapped["Pedido"] = relationship(back_populates="items")
     menu: Mapped["Menu"] = relationship()

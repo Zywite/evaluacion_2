@@ -16,6 +16,7 @@ class Pedido:
         if menu.nombre in self.menus:
             existing_menu = self.menus[menu.nombre]
             self.menus[menu.nombre] = CrearMenu(
+                id=existing_menu.id,
                 nombre=existing_menu.nombre,
                 ingredientes=existing_menu.ingredientes,
                 precio=existing_menu.precio,
@@ -24,6 +25,7 @@ class Pedido:
             )
         else:
             self.menus[menu.nombre] = CrearMenu(
+                id=menu.id,
                 nombre=menu.nombre,
                 ingredientes=menu.ingredientes,
                 precio=menu.precio,
@@ -36,6 +38,7 @@ class Pedido:
             if self.menus[nombre_menu].cantidad > 1:
                 existing_menu = self.menus[nombre_menu]
                 self.menus[nombre_menu] = CrearMenu(
+                    id=existing_menu.id,
                     nombre=existing_menu.nombre,
                     ingredientes=existing_menu.ingredientes,
                     precio=existing_menu.precio,
@@ -50,28 +53,3 @@ class Pedido:
    
     def calcular_total(self) -> float:
         return sum(menu.precio * menu.cantidad for menu in self.menus.values())
-
-    def guardar_pedido(self):
-        session: Session = get_db_session()
-        try:
-            total = self.calcular_total()
-            
-            nuevo_pedido = PedidoModel(total=total)
-            session.add(nuevo_pedido)
-            session.flush() # To get the new pedido's ID
-
-            for menu_item in self.menus.values():
-                menu_db = session.query(Menu).filter_by(nombre=menu_item.nombre).first()
-                if menu_db:
-                    nuevo_item = PedidoItem(
-                        pedido_id=nuevo_pedido.id,
-                        menu_id=menu_db.id,
-                        cantidad=menu_item.cantidad,
-                        precio_unitario=menu_item.precio
-                    )
-                    session.add(nuevo_item)
-            
-            session.commit()
-            return nuevo_pedido.id
-        finally:
-            session.close()

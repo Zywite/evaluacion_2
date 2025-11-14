@@ -20,7 +20,7 @@ class BoletaFacade:
         self.subtotal = 0
         self.iva = 0
         self.total = 0
-        self.fecha_pedido = ""
+        self.fecha_pedido = datetime.now()  # Inicializar con la fecha y hora actual
 
     def generar_detalle_boleta(self):
         session: Session = get_db_session()
@@ -29,7 +29,9 @@ class BoletaFacade:
                 joinedload(PedidoModel.items).joinedload(PedidoItem.menu)
             ).filter(PedidoModel.id == self.pedido_id).one_or_none()
 
+            print(f"DEBUG: Buscando pedido con ID: {self.pedido_id}") # Debug print
             if pedido_db:
+                print(f"DEBUG: Pedido con ID {self.pedido_id} encontrado.") # Debug print
                 self.fecha_pedido = pedido_db.fecha
                 self.total = float(pedido_db.total)
                 self.subtotal = round(self.total / 1.19, 2)
@@ -41,6 +43,9 @@ class BoletaFacade:
                         'cantidad': item.cantidad,
                         'precio_unitario': float(item.precio_unitario)
                     })
+                return True  # Indicar que los detalles se cargaron correctamente
+            print(f"DEBUG: Pedido con ID {self.pedido_id} NO encontrado.") # Debug print
+            return False  # Indicar que no se encontró el pedido
         finally:
             session.close()
 
@@ -109,5 +114,8 @@ class BoletaFacade:
 
     def generar_boleta(self):
         """Coordina la generación de la boleta y la creación del PDF."""
-        self.generar_detalle_boleta()
-        return self.crear_pdf()
+        if self.generar_detalle_boleta():
+            return self.crear_pdf()
+        else:
+            # Manejar el caso en que el pedido no se encuentra
+            raise Exception(f"No se pudo generar la boleta porque el pedido con ID {self.pedido_id} no fue encontrado.")

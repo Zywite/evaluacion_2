@@ -45,10 +45,12 @@ class CTkPDFViewer(customtkinter.CTkScrollableFrame):
     def add_pages(self):
         """add images and labels"""
         try:
+            if not self.winfo_exists(): return
             self.percentage_bar = 0
             open_pdf = fitz.open(self.file)
             
             for page in open_pdf:
+                if not self.winfo_exists(): return
                 # Convert PDF page to image using current PyMuPDF API
                 pix = page.get_displaylist().get_pixmap(alpha=False)
                 img = Image.open(io.BytesIO(pix.tobytes('ppm')))
@@ -57,18 +59,23 @@ class CTkPDFViewer(customtkinter.CTkScrollableFrame):
                     
                 self.percentage_bar = self.percentage_bar + 1
                 percentage_view = (float(self.percentage_bar) / float(len(open_pdf)) * float(100))
+                
+                if not self.winfo_exists(): return
                 self.loading_bar.set(percentage_view)
                 self.percentage_load.set(f"Cargando {os.path.basename(self.file)} \n{int(math.floor(percentage_view))}%")
             
+            if not self.winfo_exists(): return
             self.loading_bar.pack_forget()
             self.loading_message.pack_forget()
             open_pdf.close()
             
             for i in self.pdf_images:
+                if not self.winfo_exists(): return
                 label = customtkinter.CTkLabel(self, image=i, text="")
                 label.pack(pady=(0, self.separation))
                 self.labels.append(label)
         except Exception as e:
+            if not self.winfo_exists(): return
             error_message = customtkinter.CTkLabel(
                 self, 
                 text=f"Error al cargar el PDF:\n{str(e)}\n\nPuede abrir el archivo en:\n{os.path.abspath(self.file)}",

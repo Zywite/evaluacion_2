@@ -1,5 +1,5 @@
 from Ingrediente import Ingrediente as AppIngrediente
-from models import Ingrediente as OrmIngrediente
+from models import Ingrediente as OrmIngrediente, MenuIngrediente
 from typing import Dict, List
 from database import get_db_session
 from sqlalchemy.orm import Session
@@ -63,20 +63,20 @@ class Stock:
     def verificar_stock(self) -> bool:
         return len(self.lista_ingredientes) > 0
 
-    def verificar_ingredientes_suficientes(self, ingredientes_necesarios: List[AppIngrediente]) -> bool:
+    def verificar_ingredientes_suficientes(self, ingredientes_necesarios: List[MenuIngrediente]) -> bool:
         for ing_necesario in ingredientes_necesarios:
-            ing_stock = self.lista_ingredientes.get(ing_necesario.nombre)
-            if ing_stock is None or ing_stock.cantidad < ing_necesario.cantidad:
+            ing_stock = self.lista_ingredientes.get(ing_necesario.ingrediente.nombre)
+            if ing_stock is None or ing_stock.cantidad < ing_necesario.cantidad_necesaria:
                 return False
         return True
 
-    def reservar_ingredientes(self, ingredientes: List[AppIngrediente]):
+    def reservar_ingredientes(self, ingredientes: List[MenuIngrediente]):
         session: Session = get_db_session()
         try:
             for ing_necesario in ingredientes:
-                ing_stock_db = session.query(OrmIngrediente).filter_by(nombre=ing_necesario.nombre).first()
+                ing_stock_db = session.query(OrmIngrediente).filter_by(nombre=ing_necesario.ingrediente.nombre).first()
                 if ing_stock_db:
-                    ing_stock_db.cantidad -= ing_necesario.cantidad
+                    ing_stock_db.cantidad -= ing_necesario.cantidad_necesaria
                     self.lista_ingredientes[ing_stock_db.nombre].cantidad = ing_stock_db.cantidad
             session.commit()
         finally:
