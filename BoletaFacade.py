@@ -2,7 +2,7 @@ from fpdf import FPDF
 from datetime import datetime
 import os
 from database import get_db_session
-from models import Pedido as PedidoModel, PedidoItem, Menu
+from models import Pedido as PedidoModel, PedidoItem
 from sqlalchemy.orm import Session, joinedload
 
 class BoletaFacade:
@@ -21,12 +21,15 @@ class BoletaFacade:
         self.iva = 0
         self.total = 0
         self.fecha_pedido = datetime.now()  # Inicializar con la fecha y hora actual
+        self.cliente_nombre = ""
+        self.cliente_email = ""
 
     def generar_detalle_boleta(self):
         session: Session = get_db_session()
         try:
             pedido_db = session.query(PedidoModel).options(
-                joinedload(PedidoModel.items).joinedload(PedidoItem.menu)
+                joinedload(PedidoModel.items).joinedload(PedidoItem.menu),
+                joinedload(PedidoModel.cliente)
             ).filter(PedidoModel.id == self.pedido_id).one_or_none()
 
             print(f"DEBUG: Buscando pedido con ID: {self.pedido_id}") # Debug print
@@ -36,6 +39,11 @@ class BoletaFacade:
                 self.total = float(pedido_db.total)
                 self.subtotal = round(self.total / 1.19, 2)
                 self.iva = round(self.total - self.subtotal, 2)
+
+                # Obtener información del cliente
+                if pedido_db.cliente:
+                    self.cliente_nombre = f"{pedido_db.cliente.nombre} {pedido_db.cliente.apellido}"
+                    self.cliente_email = pedido_db.cliente.email
 
                 for item in pedido_db.items:
                     self.detalle_items.append({
@@ -61,7 +69,15 @@ class BoletaFacade:
         pdf.cell(0, 10, "RUT: 12345678-9", ln=True, align='L')
         pdf.cell(0, 10, "Dirección: Calle Falsa 123", ln=True, align='L')
         pdf.cell(0, 10, "Teléfono: +56 9 1234 5678", ln=True, align='L')
-        pdf.cell(0, 10, f"Fecha: {self.fecha_pedido.strftime('%d/%m/%Y %H:%M:%S')}", ln=True, align='R')
+        pdf.ln(5)
+        
+        # Información del cliente
+        pdf.set_font("Arial", 'B', 12)
+        pdf.cell(0, 10, "Datos del Cliente", ln=True, align='L')
+        pdf.set_font("Arial", size=11)
+        pdf.cell(0, 8, f"Cliente: {self.cliente_nombre}", ln=True, align='L')
+        pdf.cell(0, 8, f"Email: {self.cliente_email}", ln=True, align='L')
+        pdf.cell(0, 8, f"Fecha: {self.fecha_pedido.strftime('%d/%m/%Y %H:%M:%S')}", ln=True, align='L')
         pdf.ln(10)
         
         pdf.set_font("Arial", 'B', 12)

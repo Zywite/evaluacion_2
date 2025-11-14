@@ -236,9 +236,9 @@ class cache_funciones:
             
             return resultado
         
-        # Agregar método para limpiar caché
-        wrapper.limpiar_cache = lambda: self._cache_global.limpiar()
-        wrapper.estadisticas = lambda: self._cache_global.obtener_estadisticas()
+        # Agregar método para limpiar caché como atributo dinámico
+        setattr(wrapper, 'limpiar_cache', lambda: self._cache_global.limpiar())
+        setattr(wrapper, 'estadisticas', lambda: self._cache_global.obtener_estadisticas())
         
         return wrapper
 

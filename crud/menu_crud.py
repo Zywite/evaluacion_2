@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session, joinedload
-from models import Menu, MenuIngrediente, Ingrediente
+from models import Menu, MenuIngrediente
 from sqlalchemy.exc import IntegrityError
 from decimal import Decimal
 

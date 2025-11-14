@@ -1,9 +1,5 @@
 from ElementoMenu import CrearMenu 
 from typing import Dict, List, Tuple
-from database import get_db_session
-from models import Pedido as PedidoModel, PedidoItem, Menu
-from sqlalchemy.orm import Session
-import datetime
 
 class Pedido:
     """
@@ -49,7 +45,8 @@ class Pedido:
                 del self.menus[nombre_menu]
 
     def mostrar_pedido(self) -> List[Tuple[str, int, float]]:
-        return [(menu.nombre, menu.cantidad, menu.precio) for menu in self.menus.values()]
+        return [(menu.nombre, menu.cantidad, float(menu.precio)) for menu in self.menus.values()]
    
     def calcular_total(self) -> float:
-        return sum(menu.precio * menu.cantidad for menu in self.menus.values())
+        total = sum(menu.precio * menu.cantidad for menu in self.menus.values())
+        return float(total) if total else 0.0
