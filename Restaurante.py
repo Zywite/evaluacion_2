@@ -15,7 +15,7 @@ from menu_pdf import create_menu_pdf
 from ctk_pdf_viewer import CTkPDFViewer #para ver los pdf
 import os # para manejar las rutas
 from database import initialize_database, get_db_session
-from models import Cliente, Menu, Pedido as PedidoModel
+from models import Cliente
 from sqlalchemy.exc import IntegrityError
 from crud import cliente_crud, pedido_crud, ingrediente_crud, menu_crud
 from ElementoMenu import CrearMenu
@@ -41,16 +41,16 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
                 'text_color': "white", #texto color blanco
                 'corner_radius': 8, # borde redondeado
                 'border_width': 0, # sin borde
-                'font': ('Helvetica', 12)
-                #tamaño de fuente
+                'font': ('Helvetica', 12, 'bold')
+                #tamaño de fuente en negrita
             },
             'secondary': { #estilo secundario
                 'fg_color': "#4CAF50",  # Verde material
                 'hover_color': "#388E3C",  # Verde más oscuro
-                'text_color': "black", #texto color negro
+                'text_color': "white", #texto color blanco (cambio de negro a blanco para mejor contraste)
                 'corner_radius': 8, # borde redondeado
                 'border_width': 0, # sin borde
-                'font': ('Helvetica', 12) #tamaño de fuente
+                'font': ('Helvetica', 12, 'bold') #tamaño de fuente en negrita
             },
             'danger': { #estilo de peligro
                 'fg_color': "#F44336",  # Rojo material
@@ -58,7 +58,7 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
                 'text_color': "white", #texto color blanco
                 'corner_radius': 8, # borde redondeado
                 'border_width': 0, # sin borde
-                'font': ('Helvetica', 12) #tamaño de fuente
+                'font': ('Helvetica', 12, 'bold') #tamaño de fuente en negrita
             }
         }
 
@@ -73,6 +73,9 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
         self.tabview.pack(expand=True, fill="both", padx=10, pady=10) # se empaqueta la pestaña
 
         self.crear_pestanas() # se crean las pestañas
+        
+        # Configurar el manejador de cierre para evitar errores al cerrar
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
     def actualizar_treeview(self): # se crea para actualizar el treeview
         for item in self.tree.get_children(): # se recorre el treeview con un for
@@ -94,6 +97,30 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
             self.actualizar_clientes_combobox()
         elif selected_tab in ["Carga de ingredientes", "Stock", "Carta restorante", "Boleta"]: # si la pestaña es una de estas
             self.actualizar_treeview() # se actualiza la pantalla
+    
+    def on_closing(self):
+        """Manejador de cierre de la aplicación para evitar errores de callbacks pendientes"""
+        try:
+            # Cancelar todos los callbacks pendientes
+            try:
+                for after_id in list(self.tk.call('after', 'info')):
+                    try:
+                        self.after_cancel(after_id)
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+            
+            # Detener el event loop primero
+            self.quit()
+        except Exception:
+            pass
+        finally:
+            # Destruir la ventana
+            try:
+                self.destroy()
+            except Exception:
+                pass
     
     def crear_pestanas(self): # se crea la funcion de crear las pestañas
         self.tab_clientes = self.tabview.add("Gestión de Clientes")
@@ -150,7 +177,7 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
         self.boton_agregar_cliente = ctk.CTkButton(frame_botones_cliente, text="Agregar", command=self.agregar_cliente, **self.button_styles['primary'])
         self.boton_agregar_cliente.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
 
-        self.boton_actualizar_cliente = ctk.CTkButton(frame_botones_cliente, text="Actualizar", command=self.actualizar_cliente, **self.button_styles['secondary'])
+        self.boton_actualizar_cliente = ctk.CTkButton(frame_botones_cliente, text="Actualizar", command=self.actualizar_cliente, **self.button_styles['primary'])
         self.boton_actualizar_cliente.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
         self.boton_actualizar_cliente.configure(state="disabled")
 
@@ -248,7 +275,7 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
         if not seleccion:
             return
 
-        cliente_id = self.tree_clientes.item(seleccion[0])['values'][0]
+        cliente_id = int(self.tree_clientes.item(seleccion[0])['values'][0])
         nombre = self.entry_cliente_nombre.get().strip()
         apellido = self.entry_cliente_apellido.get().strip()
         email = self.entry_cliente_email.get().strip()
@@ -279,7 +306,7 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
             CTkMessagebox(title="Error", message="Seleccione un cliente para eliminar.", icon="warning")
             return
 
-        cliente_id = self.tree_clientes.item(seleccion[0])['values'][0]
+        cliente_id = int(self.tree_clientes.item(seleccion[0])['values'][0])
         
         msg = CTkMessagebox(title="Confirmar Eliminación", 
                             message="¿Está seguro de que desea eliminar a este cliente? Esta acción no se puede deshacer.",
@@ -402,7 +429,8 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
     def generar_y_mostrar_carta_pdf(self):
         try:
             pdf_path = "carta.pdf"
-            create_menu_pdf(self.menus, pdf_path,
+            create_menu_pdf(self.menus,  # type: ignore
+                pdf_path,
                 titulo_negocio="Restaurante",
                 subtitulo="Carta Primavera 2025",
                 moneda="$")
@@ -583,7 +611,7 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
         return icono_menu
 
     def generar_menus(self):
-        # Limpiar el frame de tarjetas existente
+        # Limpiar el frame de tarjetas existente SOLO si es necesario
         for widget in self.tarjetas_frame.winfo_children():
             widget.destroy()
         
@@ -599,9 +627,11 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
             session.close()
             
     def actualizar_menus(self):
-        """Actualiza la visualización de los menús cuando cambia el stock"""
-        if hasattr(self, 'menus_creados'):
+        """Actualiza la visualización de los menús cuando cambia el stock (optimizado para evitar parpadeos)"""
+        # Solo regenerar si no hay menús creados aún
+        if not hasattr(self, 'menus_creados') or not self.menus_creados:
             self.generar_menus()
+        # Si ya existen menús, no hacer nada para evitar parpadeos
 
     def eliminar_menu(self):
         seleccion = self.treeview_menu.selection()
@@ -692,14 +722,18 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
         self.label_total.configure(text="Total: $0.00")
 
     def generar_boleta(self):
-        if not self.pedido.menus:
-            CTkMessagebox(title="Error", message="No hay elementos en el pedido para generar la boleta.", icon="warning")
-            return
-
-        # Validar que se haya seleccionado un cliente
+        # Validar que se haya seleccionado un cliente primero
         cliente_seleccionado = self.combo_clientes_pedido.get()
         if not cliente_seleccionado or cliente_seleccionado == "Seleccione un cliente":
-            CTkMessagebox(title="Error", message="Debe seleccionar un cliente para generar la boleta.", icon="warning")
+            CTkMessagebox(
+                title="Error - Cliente Requerido", 
+                message="⚠️ Debes seleccionar un cliente antes de generar la boleta.", 
+                icon="warning"
+            )
+            return
+
+        if not self.pedido.menus:
+            CTkMessagebox(title="Error", message="No hay elementos en el pedido para generar la boleta.", icon="warning")
             return
         
         # Obtener el ID del cliente a partir del texto del combobox
@@ -758,6 +792,8 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
         # Frame principal de la pestaña de Pedido
         frame_principal_pedido = ctk.CTkFrame(self.tab2)
         frame_principal_pedido.pack(fill="both", expand=True)
+        frame_principal_pedido.grid_rowconfigure(2, weight=1)  # El frame de tarjetas se expande
+        frame_principal_pedido.grid_columnconfigure(0, weight=1)
 
         # --- Frame superior para selección de cliente ---
         frame_cliente = ctk.CTkFrame(frame_principal_pedido)
@@ -771,18 +807,18 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
 
         # --- Frame para las tarjetas de menú ---
         frame_superior = ctk.CTkFrame(frame_principal_pedido)
-        frame_superior.pack(side="top", fill="both", expand=True, padx=10, pady=5)
+        frame_superior.pack(fill="both", expand=True, padx=10, pady=5)
 
         self.tarjetas_frame = ctk.CTkScrollableFrame(frame_superior, orientation="horizontal", label_text="Menús Disponibles")
         self.tarjetas_frame.pack(expand=True, fill="both", padx=10, pady=10)
 
         # --- Frame intermedio para controles y total ---
         frame_intermedio = ctk.CTkFrame(frame_principal_pedido)
-        frame_intermedio.pack(side="top", fill="x", padx=10, pady=5)
+        frame_intermedio.pack(fill="x", padx=10, pady=5)
 
         # Frame para los botones de control
         frame_botones = ctk.CTkFrame(frame_intermedio)
-        frame_botones.pack(side="right", padx=10)
+        frame_botones.pack(side="left", expand=True, fill="x", padx=10)
 
         self.boton_eliminar_menu = ctk.CTkButton(
             frame_botones, 
@@ -790,7 +826,7 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
             command=self.eliminar_menu,
             **self.button_styles['danger']
         )
-        self.boton_eliminar_menu.pack(side="right", padx=5)
+        self.boton_eliminar_menu.pack(side="left", padx=5)
 
         self.boton_eliminar_todo = ctk.CTkButton(
             frame_botones, 
@@ -798,20 +834,33 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
             command=self.eliminar_todo,
             **self.button_styles['danger']
         )
-        self.boton_eliminar_todo.pack(side="right", padx=5)
+        self.boton_eliminar_todo.pack(side="left", padx=5)
 
         self.label_total = ctk.CTkLabel(frame_intermedio, text="Total: $0.00", anchor="e", font=("Helvetica", 12, "bold"))
         self.label_total.pack(side="right", padx=10)
 
         # --- Frame inferior para el detalle del pedido y botón de boleta ---
         frame_inferior = ctk.CTkFrame(frame_principal_pedido)
-        frame_inferior.pack(side="bottom", fill="both", expand=True, padx=10, pady=10)
+        frame_inferior.pack(fill="both", expand=True, padx=10, pady=10)
+        frame_inferior.grid_rowconfigure(0, weight=1)  # El treeview se expande
+        frame_inferior.grid_columnconfigure(0, weight=1)
 
-        self.treeview_menu = ttk.Treeview(frame_inferior, columns=("Nombre", "Cantidad", "Precio Unitario"), show="headings")
+        # Frame con scroll para el treeview
+        frame_scroll = ctk.CTkFrame(frame_inferior)
+        frame_scroll.grid(row=0, column=0, sticky="nsew", padx=0, pady=0)
+        frame_scroll.grid_rowconfigure(0, weight=1)
+        frame_scroll.grid_columnconfigure(0, weight=1)
+
+        self.treeview_menu = ttk.Treeview(frame_scroll, columns=("Nombre", "Cantidad", "Precio Unitario"), show="headings", height=8)
         self.treeview_menu.heading("Nombre", text="Nombre del Menú")
         self.treeview_menu.heading("Cantidad", text="Cantidad")
         self.treeview_menu.heading("Precio Unitario", text="Precio Unitario")
-        self.treeview_menu.pack(expand=True, fill="both", padx=10, pady=10)
+        self.treeview_menu.grid(row=0, column=0, sticky="nsew")
+
+        # Scrollbar para el treeview
+        scrollbar = ttk.Scrollbar(frame_scroll, orient="vertical", command=self.treeview_menu.yview)
+        scrollbar.grid(row=0, column=1, sticky="ns")
+        self.treeview_menu["yscroll"] = scrollbar.set
 
         self.boton_generar_boleta = ctk.CTkButton(
             frame_inferior,
@@ -819,7 +868,7 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
             command=self.generar_boleta,
             **self.button_styles['primary']
         )
-        self.boton_generar_boleta.pack(side="bottom",pady=10)
+        self.boton_generar_boleta.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
 
     def actualizar_clientes_combobox(self):
         session = get_db_session()
@@ -1049,4 +1098,9 @@ if __name__ == "__main__":
     except Exception:
         pass
 
-    app.mainloop()
+    try:
+        app.mainloop()
+    except KeyboardInterrupt:
+        print("\n✓ Aplicación cerrada por el usuario (Ctrl+C)")
+        app.quit()
+        app.destroy()
