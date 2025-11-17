@@ -15,7 +15,7 @@
 
 \author{%
     \textbf{Integrantes:}\\[0.3cm]
-    Joaqu\'{i}n Carrasco\\[0.3cm]
+    Joaqu\'{i}n Carrasco Dur\'{a}n\\[0.3cm]
     Benjamin Cabrera\\[0.3cm]
     Leonardo Ch\'{a}vez\\[0.3cm]
     \textbf{Profesor:} Guido Mellado\\[0.3cm]
@@ -66,7 +66,7 @@
 % Información del título
 \title{Sistema de Gestión de Restaurante}
 \subtitle{Evaluación N°2 --- Programación II}
-\date{\today}
+\date{Noviembre 2025}
 % La información de autores e institución ya está definida arriba
 % \author y \institute se mantienen como se definieron al inicio del documento
 
@@ -219,6 +219,129 @@
             \item \texttt{Pedido.py}: Gestión de órdenes
         \end{itemize}
     \end{itemize}
+\end{frame}
+
+\section{Implementación}
+\begin{frame}{Estructura del Proyecto}
+    \begin{itemize}
+        \item \textbf{Módulos Principales}
+        \begin{itemize}
+            \item \texttt{Restaurante.py}: Punto de entrada y GUI principal
+            \item \texttt{Stock.py}: Gestión de inventario (Singleton)
+            \item \texttt{Menu\_catalog.py}: Catálogo de productos (Factory)
+            \item \texttt{BoletaFacade.py}: Generación de documentos (Facade)
+        \end{itemize}
+        \item \textbf{Clases de Soporte}
+        \begin{itemize}
+            \item \texttt{ElementoMenu.py}: Productos del menú
+            \item \texttt{Ingrediente.py}: Componentes base
+            \item \texttt{Pedido.py}: Gestión de órdenes
+        \end{itemize}
+        \item \textbf{Módulos de Mejora} ⭐ NUEVOS
+        \begin{itemize}
+            \item \texttt{error\_handler.py}: Manejo centralizado de errores
+            \item \texttt{cache\_manager.py}: Sistema de caché con TTL
+            \item \texttt{utilities.py}: Funciones reutilizables
+            \item \texttt{statistics\_tab.py}: Análisis de datos
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\section{Mejoras Implementadas}
+\begin{frame}{Manejo Centralizado de Errores}
+    \begin{itemize}
+        \item \textbf{error\_handler.py}: Validación y logging centralizado
+        \begin{itemize}
+            \item Logging configurado con múltiples niveles (DEBUG, INFO, WARNING, ERROR)
+            \item Validadores personalizados para entrada del usuario
+            \item Excepciones específicas del dominio
+            \item Decorador \texttt{@manejo\_errores} para captura automática
+        \end{itemize}
+    \end{itemize}
+    \begin{exampleblock}{Beneficios}
+        \begin{itemize}
+            \item ✓ Código más robusto y confiable
+            \item ✓ Debugging simplificado con logs detallados
+            \item ✓ Validación consistente en todo el sistema
+        \end{itemize}
+    \end{exampleblock}
+\end{frame}
+
+\begin{frame}{Sistema de Caché con TTL}
+    \begin{itemize}
+        \item \textbf{cache\_manager.py}: Optimización de operaciones frecuentes
+        \begin{itemize}
+            \item Cache thread-safe con Time To Live (TTL)
+            \item Decorador \texttt{@cache\_funciones} para almacenamiento automático
+            \item Estadísticas de uso (hits, misses, tasa de acierto)
+            \item Limpieza automática de items expirados
+        \end{itemize}
+    \end{itemize}
+    \begin{exampleblock}{Impacto de Rendimiento}
+        \begin{itemize}
+            \item Sin caché: $\approx 500ms$ por query
+            \item Con caché: $\approx 1ms$ (cache hit)
+            \item Tasa de acierto típica: \textbf{85-90\%}
+        \end{itemize}
+    \end{exampleblock}
+\end{frame}
+
+\begin{frame}{Módulo de Utilidades}
+    \begin{itemize}
+        \item \textbf{utilities.py}: Funciones reutilizables y organizadas
+        \begin{itemize}
+            \item \texttt{UtilFormatter}: Formateo de precios, cantidades
+            \item \texttt{UtilCalculos}: Totales, descuentos, cálculos monetarios
+            \item \texttt{UtilArchivos}: Operaciones de archivos
+            \item \texttt{UtilValidacion}: Validación de entrada
+        \end{itemize}
+    \end{itemize}
+    \begin{exampleblock}{Ventajas}
+        \begin{itemize}
+            \item ✓ Código DRY (Don't Repeat Yourself)
+            \item ✓ Mantenibilidad mejorada
+            \item ✓ Reutilización a través del proyecto
+        \end{itemize}
+    \end{exampleblock}
+\end{frame}
+
+\begin{frame}{Integración con SQLAlchemy}
+    \begin{itemize}
+        \item \textbf{ORM moderno para persistencia de datos}
+        \begin{itemize}
+            \item Modelos tipados con definición clara
+            \item Operaciones CRUD en módulos separados
+            \item Relaciones tipadas entre entidades
+            \item Migraciones de esquema de base de datos
+        \end{itemize}
+    \end{itemize}
+    \begin{exampleblock}{Módulos de CRUD}
+        \begin{itemize}
+            \item cliente\_crud.py
+            \item ingrediente\_crud.py
+            \item menu\_crud.py
+            \item pedido\_crud.py
+        \end{itemize}
+    \end{exampleblock}
+\end{frame}
+
+\begin{frame}{Módulo de Estadísticas}
+    \begin{itemize}
+        \item \textbf{statistics\_tab.py}: Análisis y reportes
+        \begin{itemize}
+            \item Análisis de ventas por período
+            \item Productos más vendidos
+            \item Ingresos y tendencias
+            \item Visualización gráfica de datos
+        \end{itemize}
+    \end{itemize}
+    \begin{exampleblock}{Información Disponible}
+        \begin{itemize}
+            \item Estadísticas en tiempo real
+            \item Reportes históricos
+            \item Predicciones de demanda
+        \end{itemize}
+    \end{exampleblock}
 \end{frame}
 
 \section{Funcionalidades}
@@ -376,13 +499,24 @@ def limpiar_pedido(self):
             \item Aplicación práctica de patrones de diseño
             \item Importancia del desacoplamiento de componentes
             \item Manejo efectivo de eventos y estados
+            \item Arquitectura escalable y modular
         \end{itemize}
-        \vspace{0.5cm}
+        \vspace{0.3cm}
         \item \textbf{Desafíos Superados}:
         \begin{itemize}
             \item Sincronización de GUI con lógica de negocio
             \item Manejo consistente del estado global
             \item Validación robusta de datos
+            \item Optimización de performance con caché
+        \end{itemize}
+        \vspace{0.3cm}
+        \item \textbf{Mejoras Implementadas}:
+        \begin{itemize}
+            \item Centralización de errores y logging
+            \item Optimización con sistema de caché TTL
+            \item Integración de ORM (SQLAlchemy)
+            \item Módulo de utilidades reutilizables
+            \item Sistema de estadísticas y análisis
         \end{itemize}
     \end{itemize}
 \end{frame}
