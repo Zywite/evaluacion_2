@@ -25,6 +25,8 @@ from error_handler import (
     ValidadorCantidad,       # Validador de cantidades (Template Method)
     ValidadorNombre,         # Validador de nombres (Template Method)
 )
+from reportes import generar_reporte  # Generador de reportes (JSON, CSV, HTML)
+import subprocess  # Para abrir archivos
 #importamos todo lo que sea necesario
 
 class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para las ventanas
@@ -135,6 +137,7 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
         self.tab2 = self.tabview.add("Pedido")
         self.tab5 = self.tabview.add("Boleta")
         self.tab_estadisticas = self.tabview.add("Estadísticas")
+        self.tab_reportes = self.tabview.add("Reportes")
         # se crean las diferente pestañas con todos sus nombres
         self.configurar_pestana_clientes()
         self.configurar_pestana1()
@@ -143,6 +146,7 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
         self._configurar_pestana_crear_menu()
         self._configurar_pestana_ver_boleta()
         self._configurar_pestana_estadisticas()
+        self._configurar_pestana_reportes()
         # se configuran las pestañas con sus funciones
 
     def configurar_pestana_clientes(self):
@@ -1137,6 +1141,135 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
         self.statistics_tab_instance = StatisticsTab(self.tab_estadisticas)
         self.statistics_tab_instance.pack(expand=True, fill="both", padx=10, pady=10)
 
+    def _configurar_pestana_reportes(self):
+        """Configura la pestaña de Reportes con botones para generar reportes"""
+        frame_principal = ctk.CTkFrame(self.tab_reportes)
+        frame_principal.pack(fill="both", expand=True, padx=20, pady=20)
+        
+        # Título
+        titulo = ctk.CTkLabel(
+            frame_principal,
+            text="Generador de Reportes",
+            font=("Helvetica", 24, "bold")
+        )
+        titulo.pack(pady=20)
+        
+        # Descripción
+        desc = ctk.CTkLabel(
+            frame_principal,
+            text="Exporta datos de pedidos en diferentes formatos",
+            font=("Helvetica", 12)
+        )
+        desc.pack(pady=(0, 20))
+        
+        # Frame para botones
+        frame_botones = ctk.CTkFrame(frame_principal, fg_color="transparent")
+        frame_botones.pack(pady=20)
+        
+        # Botón JSON
+        btn_json = ctk.CTkButton(
+            frame_botones,
+            text="Exportar JSON",
+            command=self.generar_reporte_json,
+            width=200,
+            height=50,
+            font=("Helvetica", 14)
+        )
+        btn_json.pack(pady=10, padx=10, side="top")
+        
+        # Botón CSV
+        btn_csv = ctk.CTkButton(
+            frame_botones,
+            text="Exportar CSV",
+            command=self.generar_reporte_csv,
+            width=200,
+            height=50,
+            font=("Helvetica", 14)
+        )
+        btn_csv.pack(pady=10, padx=10, side="top")
+        
+        # Botón HTML
+        btn_html = ctk.CTkButton(
+            frame_botones,
+            text="Exportar HTML",
+            command=self.generar_reporte_html,
+            width=200,
+            height=50,
+            font=("Helvetica", 14)
+        )
+        btn_html.pack(pady=10, padx=10, side="top")
+        
+        # Frame para información
+        frame_info = ctk.CTkFrame(frame_principal)
+        frame_info.pack(fill="x", pady=20, padx=20)
+        
+        info_label = ctk.CTkLabel(
+            frame_info,
+            text="Los reportes se guardan en la carpeta 'reportes/'",
+            font=("Helvetica", 11),
+            text_color="gray"
+        )
+        info_label.pack(pady=10)
+
+    def generar_reporte_json(self):
+        """Genera reporte en formato JSON"""
+        try:
+            logger.info("Iniciando generación de reporte JSON")
+            archivo = generar_reporte("json", "pedidos")
+            logger.info(f"Reporte JSON generado: {archivo}")
+            
+            CTkMessagebox(
+                title="Éxito",
+                message=f"Reporte JSON generado exitosamente\n\nUbicación: {archivo}",
+                icon="info"
+            )
+        except Exception as e:
+            logger.error(f"Error generando reporte JSON: {str(e)}", exc_info=True)
+            CTkMessagebox(
+                title="Error",
+                message=f"Error al generar reporte: {str(e)}",
+                icon="warning"
+            )
+
+    def generar_reporte_csv(self):
+        """Genera reporte en formato CSV"""
+        try:
+            logger.info("Iniciando generación de reporte CSV")
+            archivo = generar_reporte("csv", "pedidos")
+            logger.info(f"Reporte CSV generado: {archivo}")
+            
+            CTkMessagebox(
+                title="Éxito",
+                message=f"Reporte CSV generado exitosamente\n\nUbicación: {archivo}",
+                icon="info"
+            )
+        except Exception as e:
+            logger.error(f"Error generando reporte CSV: {str(e)}", exc_info=True)
+            CTkMessagebox(
+                title="Error",
+                message=f"Error al generar reporte: {str(e)}",
+                icon="warning"
+            )
+
+    def generar_reporte_html(self):
+        """Genera reporte en formato HTML"""
+        try:
+            logger.info("Iniciando generación de reporte HTML")
+            archivo = generar_reporte("html", "pedidos")
+            logger.info(f"Reporte HTML generado: {archivo}")
+            
+            CTkMessagebox(
+                title="Éxito",
+                message=f"Reporte HTML generado exitosamente\n\nUbicación: {archivo}",
+                icon="info"
+            )
+        except Exception as e:
+            logger.error(f"Error generando reporte HTML: {str(e)}", exc_info=True)
+            CTkMessagebox(
+                title="Error",
+                message=f"Error al generar reporte: {str(e)}",
+                icon="warning"
+            )
 
 if __name__ == "__main__":
     import customtkinter as ctk
