@@ -1,0 +1,410 @@
+===============================================================================
+DIAGRAMAS PLANTUML - SISTEMA DE GESTIÓN DE RESTAURANTE
+===============================================================================
+
+Esta es una compilación de todos los códigos PlantUML en un solo archivo
+para fácil acceso y copia. Usa estos códigos directamente en:
+- https://www.plantuml.com/plantuml/uml/
+- VS Code con extensión PlantUML
+- Cualquier herramienta que soporte PlantUML
+
+===============================================================================
+1. DIAGRAMA DE CLASES - VERSIÓN SIMPLE
+===============================================================================
+
+@startuml
+skinparam classAttributeIconSize 0
+skinparam style strictuml
+skinparam class {
+    ArrowColor #2196F3
+    BorderColor #2196F3
+    BackgroundColor #ECEFF1
+}
+skinparam note {
+    BorderColor #2196F3
+    BackgroundColor #E3F2FD
+}
+
+interface IMenu {
+  +nombre: str
+  +precio: float
+  +esta_disponible(stock: Stock): bool
+}
+
+class CrearMenu {
+  +CrearMenu(nombre, ingredientes, precio)
+  +nombre: str
+  +precio: float
+  +ingredientes: List[Ingrediente]
+}
+
+class Ingrediente {
+  +Ingrediente(nombre, cantidad, unidad)
+  +nombre: str
+  +cantidad: float
+  +unidad: str
+}
+
+class Stock {
+  +Stock()
+  +lista_ingredientes: Dict[str, Ingrediente]
+  +agregar_ingrediente(ing: Ingrediente)
+  +reservar_ingredientes(ings: List[Ingrediente])
+}
+
+class Pedido {
+  +Pedido()
+  +menus: Dict[str, CrearMenu]
+  +agregar_menu(menu: CrearMenu)
+  +calcular_total(): float
+}
+
+class BoletaFacade {
+  +BoletaFacade(pedido: Pedido)
+  +generar_boleta(): string
+}
+
+class Restaurante {
+  +Restaurante()
+  -stock: Stock
+  -pedido: Pedido
+  +generar_boleta()
+}
+
+Restaurante "1" *-- "1" Stock
+Restaurante "1" *-- "1" Pedido
+Restaurante ..> BoletaFacade : "usa"
+BoletaFacade ..> Pedido : "usa para generar"
+Pedido "1" o-- "*" CrearMenu
+Stock "1" o-- "*" Ingrediente
+CrearMenu "1" *-- "*" Ingrediente
+CrearMenu ..|> IMenu
+
+note right of Restaurante
+  Clase principal que coordina
+  las interacciones del sistema.
+end note
+
+note bottom of BoletaFacade
+  Implementa el patrón Facade
+  para simplificar generación de PDFs.
+end note
+
+@enduml
+
+===============================================================================
+2. DIAGRAMA ENTIDAD-RELACIÓN (MER) - BASE DE DATOS
+===============================================================================
+
+@startuml
+skinparam linetype ortho
+skinparam backgroundColor #FEFEFE
+
+entity "Clientes" as Clientes {
+    *id : int PK
+    --
+    nombre : string(100)
+    apellido : string(100)
+    email : string(191) UNIQUE
+}
+
+entity "Pedidos" as Pedidos {
+    *id : int PK
+    --
+    cliente_id : int FK
+    fecha : datetime DEFAULT(now)
+    estado : string(50) DEFAULT('pendiente')
+    tipo_entrega : string(50)
+    total : decimal(10,2)
+}
+
+entity "PedidoItems" as PedidoItems {
+    *id : int PK
+    --
+    pedido_id : int FK
+    menu_id : int FK
+    cantidad : int
+    precio_unitario : decimal(10,2)
+    subtotal : decimal(10,2)
+}
+
+entity "Menus" as Menus {
+    *id : int PK
+    --
+    nombre : string(191) UNIQUE
+    precio : decimal(10,2)
+    icono_path : string(255) NULLABLE
+}
+
+entity "Ingredientes" as Ingredientes {
+    *id : int PK
+    --
+    nombre : string(191) UNIQUE
+    unidad : string(50)
+    cantidad : decimal(10,2)
+}
+
+entity "MenuIngredientes" as MenuIngredientes {
+    *menu_id : int PK, FK
+    *ingrediente_id : int PK, FK
+    --
+    cantidad_necesaria : decimal(10,2)
+}
+
+Clientes ||--o{ Pedidos : "realiza"
+Pedidos ||--o{ PedidoItems : "contiene"
+Menus ||--o{ PedidoItems : "aparece en"
+Menus ||--o{ MenuIngredientes : "requiere"
+MenuIngredientes }o--|| Ingredientes : "necesita"
+
+note right
+    PK = Primary Key
+    FK = Foreign Key
+    
+    ||--o{ : 1 a Muchos
+    }o--|| : Muchos a 1
+end note
+
+@enduml
+
+===============================================================================
+3. DIAGRAMA DE COMPONENTES - ARQUITECTURA
+===============================================================================
+
+@startuml ComponentDiagram
+skinparam componentStyle uml2
+skinparam backgroundColor #FEFEFE
+
+package "Presentación" {
+    component [AplicacionConPestanas\nGUI Principal] as GUI
+    component [StatisticsTab\nTab de Estadísticas] as Stats
+}
+
+package "Lógica de Negocio" {
+    component [Stock\nGestión de Inventario] as Stock
+    component [Pedido\nGestión de Órdenes] as Pedido
+    component [BoletaFacade\nGeneración de PDFs] as Facade
+    component [MenuCatalog\nFactory de Menús] as Factory
+}
+
+package "Persistencia" {
+    component [Database\nSQLAlchemy ORM] as DB
+    database "restaurante.db\nSQLite" as SQLite
+}
+
+package "Servicios Transversales" {
+    component [error_handler\nLogging & Validación] as ErrorHandler
+    component [cache_manager\nCaché TTL] as Cache
+    component [utilities\nFunciones auxiliares] as Utils
+}
+
+GUI --> Stock : "consulta"
+GUI --> Pedido : "administra"
+GUI --> Facade : "genera boletas"
+GUI --> Factory : "obtiene menús"
+GUI --> Stats : "visualiza"
+Stats --> Cache : "almacena"
+
+Stock --> DB : "persiste"
+Pedido --> DB : "persiste"
+Facade --> Utils : "formatea"
+Facade --> Cache : "cachea"
+
+DB --> SQLite : "lee/escribe"
+
+GUI --> ErrorHandler : "valida"
+Stock --> ErrorHandler : "registra"
+Cache --> ErrorHandler : "monitorea"
+
+@enduml
+
+===============================================================================
+4. DIAGRAMA DE SECUENCIA - FLUJO DE GENERACIÓN DE BOLETA
+===============================================================================
+
+@startuml SequenceDiagram
+actor Usuario
+participant "Restaurante\nGUI" as GUI
+participant "Stock" as Stock
+participant "Pedido" as Pedido
+participant "BoletaFacade" as Facade
+participant "error_handler" as ErrorH
+participant "utilities" as Utils
+database "PDF\nFile" as PDF
+
+Usuario -> GUI : Click en "Generar Boleta"
+activate GUI
+
+GUI -> Pedido : calcular_total()
+activate Pedido
+Pedido --> GUI : total
+deactivate Pedido
+
+alt Sin errores
+    GUI -> Stock : verificar_disponibilidad()
+    activate Stock
+    Stock --> GUI : disponible=true
+    deactivate Stock
+    
+    GUI -> Facade : generar_boleta()
+    activate Facade
+    
+    Facade -> Utils : formatear_precio(total)
+    activate Utils
+    Utils --> Facade : "$12.345,67"
+    deactivate Utils
+    
+    Facade -> Utils : calcular_total_con_iva()
+    activate Utils
+    Utils --> Facade : 14679.57
+    deactivate Utils
+    
+    Facade -> PDF : output(boleta.pdf)
+    activate PDF
+    PDF --> Facade : ruta
+    deactivate PDF
+    
+    Facade --> GUI : "Boleta generada"
+    deactivate Facade
+    
+    GUI -> ErrorH : logger.info("Boleta creada")
+    activate ErrorH
+    ErrorH --> GUI : OK
+    deactivate ErrorH
+    
+    GUI --> Usuario : Mostrar vista previa
+    
+else Con errores
+    GUI -> ErrorH : manejo_errores()
+    activate ErrorH
+    ErrorH --> GUI : excepción
+    deactivate ErrorH
+    GUI --> Usuario : Mostrar error
+end
+
+deactivate GUI
+
+@enduml
+
+===============================================================================
+5. DIAGRAMA DE ESTADO - CICLO DE VIDA DE UN PEDIDO
+===============================================================================
+
+@startuml StateDiagram
+[*] --> Vacío : Crear Pedido
+
+Vacío --> ConItems : Agregar Menú
+Vacío --> [*] : Cancelar
+
+ConItems --> ConItems : Agregar Menú
+ConItems --> Vacío : Eliminar Menú
+ConItems --> Revisión : Revisar Total
+
+Revisión --> ConItems : Modificar
+Revisión --> Generando : Generar Boleta
+
+Generando --> BBoletaGenerada : Éxito
+Generando --> ConItems : Error
+
+BBoletaGenerada --> Guardado : Guardar en BD
+Guardado --> [*] : Completado
+
+ConItems --> [*] : Cancelar
+Revisión --> [*] : Cancelar
+
+@enduml
+
+===============================================================================
+6. DIAGRAMA DE DESPLIEGUE
+===============================================================================
+
+@startuml DeploymentDiagram
+artifact "Código Fuente" as Source
+artifact "Requirements.txt" as Req
+
+node "PC Usuario" {
+    component "Python 3.13" as Python
+    component "CustomTkinter GUI" as GUI
+    component "Módulos del Sistema" as Modules
+}
+
+node "Base de Datos" {
+    database "SQLite\nrestaurante.db" as DB
+}
+
+node "Almacenamiento" {
+    folder "Boletas" as Boletas
+    folder "Cartas PDF" as Cartas
+    folder "Logs" as Logs
+}
+
+Source --> Python : instala
+Req --> Python : especifica
+
+Python --> GUI : carga
+Python --> Modules : carga
+Modules --> DB : conecta
+Modules --> Boletas : genera
+Modules --> Cartas : genera
+Modules --> Logs : escribe
+
+GUI --> Modules : llama
+
+@enduml
+
+===============================================================================
+INSTRUCCIONES DE USO
+===============================================================================
+
+1. Elige el diagrama que necesitas (1-6 arriba)
+2. Copia TODO el código entre @startuml y @enduml
+3. Pégalo en una de estas herramientas:
+   - https://www.plantuml.com/plantuml/uml/
+   - Extensión PlantUML en VS Code
+   - Aplicación de escritorio PlantUML
+
+4. Para generar archivos:
+   - CLI: plantuml -Tsvg archivo.puml
+   - Online: Haz clic en Download
+
+RECOMENDACIONES:
+- SVG es mejor para web y documentación
+- PNG es mejor para presentaciones
+- PDF es mejor para impresión
+
+===============================================================================
+REFERENCIAS DE SÍMBOLOS PlantUML
+===============================================================================
+
+RELACIONES:
+  * -- : Composición (relación fuerte)
+  o -- : Agregación (relación débil)
+  --> : Asociación
+  ..> : Dependencia
+  ..|> : Implementación
+
+CARDINALIDAD:
+  1 : Exactamente uno
+  * : Cero o muchos
+  1..* : Uno a muchos
+  0..1 : Cero a uno
+
+ELEMENTOS:
+  class : Clase
+  interface : Interfaz
+  entity : Entidad de BD
+  component : Componente
+  package : Paquete/Módulo
+  database : Base de datos
+  artifact : Artefacto
+  node : Nodo de despliegue
+
+ATRIBUTOS:
+  {static} : Miembro estático
+  {abstract} : Miembro abstracto
+  + : Público
+  - : Privado
+  # : Protegido
+  ~ : Paquete
+
+===============================================================================

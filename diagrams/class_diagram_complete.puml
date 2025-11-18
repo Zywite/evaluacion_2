@@ -1,0 +1,191 @@
+@startuml ClassDiagram
+' Diagrama de Clases del Sistema de Gestión de Restaurante
+' Incluye todas las clases principales y sus relaciones
+
+' Configuración de apariencia
+skinparam classAttributeIconSize 0
+skinparam style strictuml
+skinparam backgroundColor #FEFEFE
+skinparam class {
+    ArrowColor #2196F3
+    BorderColor #2196F3
+    BackgroundColor #ECEFF1
+    FontSize 11
+}
+skinparam note {
+    BorderColor #2196F3
+    BackgroundColor #E3F2FD
+    FontSize 10
+}
+skinparam rectangle {
+    BackgroundColor #F5F5F5
+    BorderColor #757575
+}
+
+' ============ INTERFACES Y PROTOCOLOS ============
+interface IMenu {
+    +nombre: str
+    +precio: float
+    +ingredientes: List[Ingrediente]
+    +cantidad: int
+    +icono_path: Optional[str]
+    --
+    +esta_disponible(stock: Stock) -> bool
+}
+
+note right of IMenu
+    Interfaz que define el contrato
+    para los elementos del menú.
+    Implementada mediante Protocol.
+end note
+
+' ============ CLASES DE DOMINIO ============
+
+class Ingrediente {
+    +id: int
+    +nombre: str
+    +unidad: str
+    +cantidad: float
+    --
+    +__init__(nombre: str, unidad: str, cantidad: float)
+    +actualizar_cantidad(delta: float)
+}
+
+note bottom of Ingrediente
+    Representa un componente
+    base del sistema de inventario
+end note
+
+class CrearMenu implements IMenu {
+    +id: int
+    +nombre: str
+    +precio: float
+    +ingredientes: List[Ingrediente]
+    +cantidad: int
+    +icono_path: Optional[str]
+    --
+    +__init__(nombre: str, ingredientes: List, precio: float)
+    +esta_disponible(stock: Stock) -> bool
+}
+
+note right of CrearMenu
+    Implementa la interfaz IMenu
+    Representa un plato del menú
+    con sus ingredientes y precio
+end note
+
+class Stock {
+    +lista_ingredientes: Dict[str, Ingrediente]
+    --
+    +agregar_ingrediente(ing: Ingrediente)
+    +eliminar_ingrediente(nombre: str)
+    +verificar_ingredientes_suficientes(ings: List[Ingrediente]) -> bool
+    +reservar_ingredientes(ings: List[Ingrediente])
+    +liberar_ingredientes(ings: List[Ingrediente])
+    +obtener_ingrediente(nombre: str) -> Ingrediente
+}
+
+note bottom of Stock
+    Patrón Singleton
+    Gestiona el inventario centralizado
+    Operaciones O(1) con diccionario
+end note
+
+class Pedido {
+    +menus: Dict[str, CrearMenu]
+    --
+    +agregar_menu(menu: CrearMenu)
+    +eliminar_menu(nombre: str)
+    +calcular_total() -> float
+    +calcular_iva() -> float
+    +limpiar()
+    +obtener_items() -> List[CrearMenu]
+}
+
+note right of Pedido
+    Gestiona el carrito de pedido actual
+    Mantiene diccionario de menús
+    Realiza cálculos de total e IVA
+end note
+
+class BoletaFacade {
+    +pedido: Pedido
+    +detalle: str
+    +subtotal: float
+    +iva: float
+    +total: float
+    --
+    +generar_boleta() -> str
+    +generar_detalle_boleta()
+    +mostrar_boleta()
+}
+
+note bottom of BoletaFacade
+    Patrón Facade
+    Simplifica la generación de boletas PDF
+    Oculta complejidad de FPDF
+end note
+
+class MenuCatalog {
+    +{static} menus: Dict[str, CrearMenu]
+    --
+    +{static} get_default_menus() -> Dict[str, CrearMenu]
+    +{static} crear_menu(nombre: str, ingredientes: List, precio: float)
+}
+
+note right of MenuCatalog
+    Patrón Factory
+    Centraliza la creación de menús
+    Proporciona acceso al catálogo
+end note
+
+class AplicacionConPestanas {
+    -stock: Stock
+    -pedido: Pedido
+    -tabview: CTkTabview
+    --
+    +crear_pestanas()
+    +configurar_pestana1()
+    +configurar_pestana2()
+    +agregar_menu_a_pedido()
+    +generar_boleta()
+    +actualizar_treeview()
+}
+
+note right of AplicacionConPestanas
+    Clase principal de la GUI
+    Coordina todas las interacciones
+    Patrón Observer implícito
+end note
+
+' ============ RELACIONES ============
+
+' Relaciones de AplicacionConPestanas
+AplicacionConPestanas "1" *-- "1" Stock : "maneja"
+AplicacionConPestanas "1" *-- "1" Pedido : "administra"
+AplicacionConPestanas ..> BoletaFacade : "usa para generar"
+AplicacionConPestanas ..> MenuCatalog : "obtiene menús de"
+
+' Relaciones de Pedido
+Pedido "1" o-- "*" CrearMenu : "contiene"
+
+' Relaciones de Stock
+Stock "1" o-- "*" Ingrediente : "gestiona"
+
+' Relaciones de CrearMenu
+CrearMenu "1" *-- "*" Ingrediente : "compuesto de"
+
+' Relaciones de BoletaFacade
+BoletaFacade ..> Pedido : "lee para generar"
+
+' Relaciones de MenuCatalog
+MenuCatalog ..> CrearMenu : "crea"
+
+' ============ LEYENDA ============
+legend right
+    |<#ECEFF1> Clases de Dominio |
+    |<#E3F2FD> Interfaces |
+    |<#FCE4EC> Patrones de Diseño |
+endlegend
+
+@enduml

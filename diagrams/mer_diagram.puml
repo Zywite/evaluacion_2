@@ -1,0 +1,89 @@
+@startuml ERDiagram
+' Diagrama Entidad-Relación (MER) de Base de Datos
+' Sistema de Gestión de Restaurante con SQLAlchemy
+
+skinparam linetype ortho
+skinparam backgroundColor #FEFEFE
+
+entity "Clientes" as Clientes {
+    *id : int PK
+    --
+    nombre : string(100)
+    apellido : string(100)
+    email : string(191) UNIQUE
+}
+
+entity "Pedidos" as Pedidos {
+    *id : int PK
+    --
+    cliente_id : int FK
+    fecha : datetime DEFAULT(now)
+    estado : string(50) DEFAULT('pendiente')
+    tipo_entrega : string(50)
+    total : decimal(10,2)
+}
+
+entity "PedidoItems" as PedidoItems {
+    *id : int PK
+    --
+    pedido_id : int FK
+    menu_id : int FK
+    cantidad : int
+    precio_unitario : decimal(10,2)
+    subtotal : decimal(10,2)
+}
+
+entity "Menus" as Menus {
+    *id : int PK
+    --
+    nombre : string(191) UNIQUE
+    precio : decimal(10,2)
+    icono_path : string(255) NULLABLE
+}
+
+entity "Ingredientes" as Ingredientes {
+    *id : int PK
+    --
+    nombre : string(191) UNIQUE
+    unidad : string(50)
+    cantidad : decimal(10,2)
+}
+
+entity "MenuIngredientes" as MenuIngredientes {
+    *menu_id : int PK, FK
+    *ingrediente_id : int PK, FK
+    --
+    cantidad_necesaria : decimal(10,2)
+}
+
+' ============ RELACIONES ============
+
+' Un cliente puede tener muchos pedidos (1:N)
+Clientes ||--o{ Pedidos : "realiza"
+
+' Un pedido contiene muchos items (1:N)
+Pedidos ||--o{ PedidoItems : "contiene"
+
+' Un menú puede estar en muchos items de pedido (1:N)
+Menus ||--o{ PedidoItems : "aparece en"
+
+' Un menú requiere muchos ingredientes (N:M mediante tabla asociativa)
+Menus ||--o{ MenuIngredientes : "requiere"
+MenuIngredientes }o--|| Ingredientes : "necesita"
+
+' ============ LEYENDA ============
+note right
+    PK = Primary Key (Clave Primaria)
+    FK = Foreign Key (Clave Foránea)
+    
+    Relaciones:
+    ||--o{ : 1 a Muchos
+    }o--|| : Muchos a 1
+    o--o : Muchos a Muchos
+    
+    Líneas:
+    || = Exactamente uno
+    o{ = Cero o muchos
+end note
+
+@enduml

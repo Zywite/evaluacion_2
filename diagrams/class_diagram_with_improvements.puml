@@ -1,0 +1,330 @@
+@startuml ClassDiagramDetailed
+' Diagrama de Clases Detallado del Sistema de Gestión de Restaurante
+' Incluye módulos nuevos de mejoras: error_handler, cache_manager, utilities
+
+' Configuración
+skinparam classAttributeIconSize 0
+skinparam style strictuml
+skinparam backgroundColor #FEFEFE
+skinparam class {
+    ArrowColor #2196F3
+    BorderColor #2196F3
+    BackgroundColor #ECEFF1
+    FontSize 10
+}
+skinparam package {
+    BorderColor #757575
+    BackgroundColor #F5F5F5
+    FontSize 11
+}
+
+' ============ PACKAGE: DOMINIO ============
+package "Dominio" #ECEFF1 {
+    interface IMenu {
+        +nombre: str
+        +precio: float
+        +ingredientes: List[Ingrediente]
+        +cantidad: int
+        --
+        +esta_disponible(stock: Stock) -> bool
+    }
+
+    class CrearMenu implements IMenu {
+        +id: int
+        +nombre: str
+        +precio: float
+        +ingredientes: List[Ingrediente]
+        +cantidad: int
+        +icono_path: Optional[str]
+        --
+        +esta_disponible(stock: Stock) -> bool
+        +calcular_precio_total() -> float
+    }
+
+    class Ingrediente {
+        +id: int
+        +nombre: str
+        +unidad: str
+        +cantidad: float
+        --
+        +actualizar_cantidad(delta: float)
+        +obtener_cantidad_disponible() -> float
+    }
+
+    class Pedido {
+        +menus: Dict[str, CrearMenu]
+        +fecha_creacion: datetime
+        --
+        +agregar_menu(menu: CrearMenu)
+        +eliminar_menu(nombre: str)
+        +calcular_total() -> float
+        +calcular_iva() -> float
+        +limpiar()
+    }
+
+    class Stock {
+        +lista_ingredientes: Dict[str, Ingrediente]
+        --
+        +agregar_ingrediente(ing: Ingrediente)
+        +eliminar_ingrediente(nombre: str)
+        +verificar_ingredientes_suficientes(ings: List) -> bool
+        +reservar_ingredientes(ings: List)
+        +liberar_ingredientes(ings: List)
+    }
+
+    ' Relaciones de Dominio
+    Pedido "1" o-- "*" CrearMenu
+    Stock "1" o-- "*" Ingrediente
+    CrearMenu "1" *-- "*" Ingrediente
+}
+
+' ============ PACKAGE: PATRONES ============
+package "Patrones de Diseño" #FCE4EC {
+    class BoletaFacade {
+        +pedido: Pedido
+        +detalle: str
+        +subtotal: float
+        +iva: float
+        +total: float
+        --
+        +generar_boleta() -> str
+        +generar_detalle_boleta()
+        +mostrar_boleta()
+        +generar_pdf(path: str)
+    }
+
+    class MenuCatalog {
+        +{static} menus: Dict[str, CrearMenu]
+        +{static} ingredientes: Dict[str, Ingrediente]
+        --
+        +{static} get_default_menus() -> Dict[str, CrearMenu]
+        +{static} crear_menu(nombre: str, ing: List, precio: float)
+        +{static} obtener_menu(nombre: str) -> CrearMenu
+    }
+
+    BoletaFacade ..> Pedido
+    MenuCatalog ..> CrearMenu
+}
+
+' ============ PACKAGE: GUI ============
+package "Interfaz Gráfica" #C8E6C9 {
+    class AplicacionConPestanas {
+        -stock: Stock
+        -pedido: Pedido
+        -tabview: CTkTabview
+        -root: CTk
+        --
+        +crear_pestanas()
+        +configurar_pestana1() : void
+        +configurar_pestana2() : void
+        +configurar_pestana3() : void
+        +agregar_menu_a_pedido(menu: CrearMenu) : bool
+        +generar_boleta() : str
+        +actualizar_treeview() : void
+        +mostrar_error(titulo: str, mensaje: str) : void
+    }
+
+    AplicacionConPestanas "1" *-- "1" Stock
+    AplicacionConPestanas "1" *-- "1" Pedido
+    AplicacionConPestanas ..> BoletaFacade
+    AplicacionConPestanas ..> MenuCatalog
+}
+
+' ============ PACKAGE: MANEJO DE ERRORES ============
+package "Manejo de Errores" #FFECB3 {
+    class LoggerConfig {
+        +{static} _logger: logging.Logger
+        --
+        +{static} get_logger(name: str) -> Logger
+        +{static} set_level(level: int)
+    }
+
+    class Validador {
+        +{static} validar_nombre(nombre: str) -> bool
+        +{static} validar_cantidad(cantidad: str) -> float
+        +{static} validar_precio(precio: str) -> float
+        +{static} validar_archivo_csv(ruta: str) -> str
+    }
+
+    class "RestauranteException" as RestException {
+        +mensaje: str
+        +__init__(mensaje: str)
+    }
+
+    class "CSVException" as CSVException {
+        +archivo: str
+        +__init__(archivo: str, mensaje: str)
+    }
+
+    LoggerConfig --> RestException
+    Validador --> RestException
+}
+
+' ============ PACKAGE: OPTIMIZACIÓN ============
+package "Optimización y Caché" #B3E5FC {
+    class Cache {
+        +_datos: Dict[str, CacheItem]
+        +_lock: threading.Lock
+        +ttl_default: int
+        --
+        +set(clave: str, valor: Any, ttl: int)
+        +get(clave: str) -> Any
+        +limpiar_expirados() -> int
+        +obtener_estadisticas() -> Dict
+    }
+
+    class "cache_funciones" as CacheFunciones {
+        +_cache_global: Cache
+        +ttl: Optional[int]
+        --
+        +__call__(func: Callable) -> Callable
+        +limpiar_cache()
+        +estadisticas() -> Dict
+    }
+
+    Cache "1" *-- "*" CacheItem
+    CacheFunciones "1" --> "1" Cache
+}
+
+' ============ PACKAGE: UTILIDADES ============
+package "Funciones Utilitarias" #E1BEE7 {
+    class UtilFormatter {
+        +{static} formatear_precio(precio: float) -> str
+        +{static} formatear_cantidad(cantidad: float) -> str
+        +{static} formatear_extensión(ruta: str) -> str
+    }
+
+    class UtilCalculos {
+        +{static} calcular_total_con_iva(subtotal: float) -> float
+        +{static} aplicar_descuento(monto: float, desc: float) -> float
+        +{static} calcular_cambio(total: float, pagado: float) -> float
+    }
+
+    class UtilArchivos {
+        +{static} obtener_nombre_archivo(ruta: str) -> str
+        +{static} obtener_extension(ruta: str) -> str
+        +{static} crear_directorio(ruta: str)
+        +{static} archivo_existe(ruta: str) -> bool
+    }
+
+    class UtilValidacion {
+        +{static} es_email_valido(email: str) -> bool
+        +{static} es_telefono_valido(tel: str) -> bool
+        +{static} es_rut_valido(rut: str) -> bool
+    }
+}
+
+' ============ PACKAGE: ESTADÍSTICAS ============
+package "Estadísticas" #FFE0B2 {
+    class StatisticsTab {
+        -parent_frame: CTkFrame
+        -data_manager: DataManager
+        --
+        +crear_tab() -> CTkFrame
+        +actualizar_estadisticas()
+        +graficar_ventas()
+        +obtener_productos_populares() -> List
+        +calcular_ingresos_por_periodo() -> Dict
+    }
+
+    StatisticsTab ..> Cache
+}
+
+' ============ PACKAGE: BASE DE DATOS ============
+package "Base de Datos (SQLAlchemy)" #F8BBD0 {
+    class Cliente {
+        +id: int (PK)
+        +nombre: str
+        +apellido: str
+        +email: str (UNIQUE)
+        --
+        +pedidos: relationship[Pedido]
+    }
+
+    class Menu {
+        +id: int (PK)
+        +nombre: str (UNIQUE)
+        +precio: decimal
+        +icono_path: str
+        --
+        +ingredientes: relationship[MenuIngrediente]
+    }
+
+    class Ingrediente {
+        +id: int (PK)
+        +nombre: str (UNIQUE)
+        +unidad: str
+        +cantidad: decimal
+    }
+
+    class Pedido_DB {
+        +id: int (PK)
+        +cliente_id: int (FK)
+        +fecha: datetime
+        +estado: str
+        +total: decimal
+        --
+        +cliente: relationship[Cliente]
+        +items: relationship[PedidoItem]
+    }
+
+    class PedidoItem {
+        +id: int (PK)
+        +pedido_id: int (FK)
+        +menu_id: int (FK)
+        +cantidad: int
+        +precio_unitario: decimal
+        +subtotal: decimal
+    }
+
+    class MenuIngrediente {
+        +menu_id: int (PK, FK)
+        +ingrediente_id: int (PK, FK)
+        +cantidad_necesaria: decimal
+    }
+
+    Cliente "1" --> "*" Pedido_DB
+    Pedido_DB "1" --> "*" PedidoItem
+    Menu "1" --> "*" PedidoItem
+    Menu "*" --> "*" Ingrediente : "a través de"
+    MenuIngrediente
+
+    ' Relación explícita
+    Menu "1" o-- "*" MenuIngrediente
+    MenuIngrediente "*" o-- "1" Ingrediente
+}
+
+' ============ CONEXIONES ENTRE PACKAGES ============
+
+AplicacionConPestanas ..> LoggerConfig : "usa para logging"
+AplicacionConPestanas ..> Validador : "valida con"
+AplicacionConPestanas ..> UtilFormatter : "formatea con"
+AplicacionConPestanas ..> Cache : "almacena en caché"
+AplicacionConPestanas ..> StatisticsTab : "contiene"
+
+BoletaFacade ..> UtilCalculos : "calcula con"
+BoletaFacade ..> UtilFormatter : "formatea con"
+
+MenuCatalog ..> Cache : "cachea menús"
+
+Validador ..> UtilValidacion : "complementa"
+Validador ..> LoggerConfig : "registra errores"
+
+' ============ LEYENDA ============
+legend right
+    |<#ECEFF1> Dominio |
+    |<#FCE4EC> Patrones de Diseño |
+    |<#C8E6C9> Interfaz Gráfica |
+    |<#FFECB3> Manejo de Errores |
+    |<#B3E5FC> Optimización/Caché |
+    |<#E1BEE7> Utilidades |
+    |<#FFE0B2> Estadísticas |
+    |<#F8BBD0> Base de Datos |
+    ----
+    * = Composición (relación fuerte)
+    o-- = Agregación (relación débil)
+    --> = Asociación
+    ..> = Dependencia
+endlegend
+
+@enduml
