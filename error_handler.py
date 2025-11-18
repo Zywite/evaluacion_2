@@ -310,3 +310,42 @@ class MensajesError:
     def get_mensaje(tipo: tuple) -> tuple:
         """Retorna tupla (titulo, mensaje)"""
         return tipo
+
+
+# ============================================================================
+# EJEMPLO DE USO - VALIDADORES TEMPLATE METHOD
+# ============================================================================
+
+def ejemplo_uso_validadores():
+    """
+    Demuestra cómo usar los validadores Template Method.
+    
+    Ejemplo de uso:
+        resultado_cantidad = ValidadorCantidad().validar("100")
+        resultado_precio = ValidadorPrecio().validar("99.99")
+        resultado_nombre = ValidadorNombre().validar("Producto XYZ")
+        resultado_email = ValidadorEmail().validar("usuario@ejemplo.com")
+    """
+    logger.info("=== Ejemplo de uso de validadores Template Method ===")
+    
+    # Usar validadores
+    validador_cant = ValidadorCantidad()
+    validador_precio = ValidadorPrecio()
+    validador_nombre = ValidadorNombre(longitud_minima=3)
+    validador_email = ValidadorEmail()
+    
+    # Probar cantidades
+    logger.info(f"Cantidad '50': {validador_cant.validar('50')}")  # True
+    logger.info(f"Cantidad '-10': {validador_cant.validar('-10')}")  # False
+    
+    # Probar precios
+    logger.info(f"Precio '99.99': {validador_precio.validar('99.99')}")  # True
+    logger.info(f"Precio '-5': {validador_precio.validar('-5')}")  # False
+    
+    # Probar nombres
+    logger.info(f"Nombre 'Producto': {validador_nombre.validar('Producto')}")  # True
+    logger.info(f"Nombre 'AB': {validador_nombre.validar('AB')}")  # False
+    
+    # Probar emails
+    logger.info(f"Email 'user@example.com': {validador_email.validar('user@example.com')}")  # True
+    logger.info(f"Email 'invalido': {validador_email.validar('invalido')}")  # False
