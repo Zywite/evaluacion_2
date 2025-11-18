@@ -1,11 +1,15 @@
 """
 Módulo de manejo centralizado de errores y logging
 Proporciona validación, logging y mensajes de error consistentes
+
+Integra el patrón Template Method para validaciones reutilizables,
+permitiendo extender fácilmente con nuevos tipos de validadores.
 """
 
 import logging
 import sys
 from typing import Callable, Any
+from abc import ABC, abstractmethod
 
 
 # Configurar logging
@@ -134,6 +138,104 @@ class Validador:
             raise CSVException(f"El archivo no existe: {ruta}")
         
         return ruta
+
+
+# ============================================================================
+# TEMPLATE METHOD - VALIDADORES ESPECIALIZADOS
+# ============================================================================
+
+class ValidadorTemplate(ABC):
+    """
+    Clase base abstracta que implementa el patrón Template Method
+    para validación de datos específicos.
+    
+    El patrón define el flujo común de validación:
+    1. Preparar datos (trim, conversión, etc.)
+    2. Aplicar validación específica
+    3. Registrar resultado en logs
+    4. Retornar resultado
+    
+    Esto permite extender con nuevos validadores sin duplicar código.
+    """
+    
+    def validar(self, valor: str) -> bool:
+        """
+        Template Method: Define el esqueleto del algoritmo de validación
+        Las subclases implementan los pasos específicos
+        """
+        try:
+            # PASO 1: Preparar datos (implementado por subclases)
+            valor_preparado = self._preparar_datos(valor)
+            logger.debug(f"Datos preparados para {self.__class__.__name__}: {valor_preparado}")
+            
+            # PASO 2: Validar datos específicos (implementado por subclases)
+            es_valido = self._validar_especifico(valor_preparado)
+            
+            # PASO 3: Registrar validación
+            self._registrar_validacion(valor_preparado, es_valido)
+            
+            return es_valido
+        except Exception as e:
+            logger.error(f"Error en validación {self.__class__.__name__}: {e}")
+            self._registrar_validacion(valor, False)
+            return False
+    
+    def _preparar_datos(self, valor: str) -> str:
+        """Hook: Preparación de datos (puede ser override por subclases)"""
+        return str(valor).strip()
+    
+    @abstractmethod
+    def _validar_especifico(self, valor: str) -> bool:
+        """Método abstracto: Validación específica a implementar por subclases"""
+        pass
+    
+    def _registrar_validacion(self, valor: str, resultado: bool) -> None:
+        """Hook: Registro de validación (puede ser override por subclases)"""
+        estado = "válido" if resultado else "inválido"
+        logger.info(f"{self.__class__.__name__}: '{valor}' - {estado}")
+
+
+class ValidadorCantidad(ValidadorTemplate):
+    """Validador especializado para cantidades numéricas positivas"""
+    
+    def _validar_especifico(self, valor: str) -> bool:
+        """Valida que sea un número positivo"""
+        try:
+            cant = float(valor)
+            return cant > 0
+        except (ValueError, TypeError):
+            return False
+
+
+class ValidadorPrecio(ValidadorTemplate):
+    """Validador especializado para precios (no negativos)"""
+    
+    def _validar_especifico(self, valor: str) -> bool:
+        """Valida que sea un número no negativo"""
+        try:
+            precio = float(valor)
+            return precio >= 0
+        except (ValueError, TypeError):
+            return False
+
+
+class ValidadorNombre(ValidadorTemplate):
+    """Validador especializado para nombres/strings"""
+    
+    def __init__(self, longitud_minima: int = 2):
+        self.longitud_minima = longitud_minima
+    
+    def _validar_especifico(self, valor: str) -> bool:
+        """Valida que tenga longitud mínima y caracteres válidos"""
+        return len(valor) >= self.longitud_minima and valor.replace(" ", "").isalnum()
+
+
+class ValidadorEmail(ValidadorTemplate):
+    """Validador especializado para emails"""
+    
+    def _validar_especifico(self, valor: str) -> bool:
+        """Valida formato básico de email"""
+        return "@" in valor and "." in valor.split("@")[-1] if "@" in valor else False
 
 
 # Decorador para manejo automático de errores
