@@ -261,10 +261,13 @@ from error_handler import LoggerConfig, Validador, manejo_errores
 # Obtener logger configurado
 logger = LoggerConfig.get_logger()
 
-# Validar entrada del usuario
+# Validar entrada usando validadores Template Method
 try:
-    cantidad = Validador.validar_cantidad(entrada)
-    precio = Validador.validar_precio(valor)
+    validador_cantidad = ValidadorCantidad()
+    cantidad = validador_cantidad.validar(entrada)
+    
+    validador_precio = ValidadorPrecio()
+    precio = validador_precio.validar(valor)
 except ValueError as e:
     logger.error(f"Validación fallida: {e}")
 

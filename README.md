@@ -139,12 +139,15 @@ python Restaurante.py
 Centraliza toda la validación y manejo de excepciones
 
 ```python
-from error_handler import Validador, logger, manejo_errores, MensajesError
+from error_handler import ValidadorCantidad, ValidadorPrecio, logger, manejo_errores, MensajesError
 
-# Validar entrada
+# Validar entrada usando Template Method
 try:
-    cantidad = Validador.validar_cantidad(input_user)
-    precio = Validador.validar_precio(input_price)
+    validador_cant = ValidadorCantidad()
+    cantidad_valida = validador_cant.validar(input_user)
+    
+    validador_precio = ValidadorPrecio()
+    precio_valido = validador_precio.validar(input_price)
 except ValueError as e:
     titulo, msg = MensajesError.CANTIDAD_INVALIDA
     mostrar_error(titulo, msg)

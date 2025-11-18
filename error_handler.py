@@ -8,7 +8,7 @@ permitiendo extender fácilmente con nuevos tipos de validadores.
 
 import logging
 import sys
-from typing import Callable, Any
+from typing import Callable
 from abc import ABC, abstractmethod
 
 
@@ -75,69 +75,6 @@ class CSVException(RestauranteException):
 class BolletaException(RestauranteException):
     """Excepción relacionada con generación de boletas"""
     pass
-
-
-# Funciones de validación
-class Validador:
-    """Clase con métodos de validación reutilizables"""
-    
-    @staticmethod
-    def validar_cantidad(cantidad: Any, nombre_campo: str = "cantidad") -> float:
-        """
-        Valida que cantidad sea un número positivo
-        
-        Args:
-            cantidad: Valor a validar
-            nombre_campo: Nombre del campo para el mensaje
-            
-        Returns:
-            float: Cantidad validada
-            
-        Raises:
-            ValueError: Si la cantidad es inválida
-        """
-        try:
-            cant = float(cantidad)
-            if cant <= 0:
-                raise ValueError(f"{nombre_campo} debe ser mayor a 0")
-            return cant
-        except (ValueError, TypeError) as e:
-            logger.error(f"Error validando {nombre_campo}: {e}")
-            raise ValueError(f"{nombre_campo} debe ser un número válido")
-    
-    @staticmethod
-    def validar_precio(precio: Any) -> float:
-        """Valida que precio sea un número positivo"""
-        try:
-            p = float(precio)
-            if p < 0:
-                raise ValueError("El precio no puede ser negativo")
-            return p
-        except (ValueError, TypeError) as e:
-            logger.error(f"Error validando precio: {e}")
-            raise ValueError("El precio debe ser un número válido")
-    
-    @staticmethod
-    def validar_string(valor: Any, longitud_min: int = 1, 
-                      nombre_campo: str = "campo") -> str:
-        """Valida que valor sea un string válido"""
-        if not isinstance(valor, str) or len(valor.strip()) < longitud_min:
-            raise ValueError(
-                f"{nombre_campo} debe tener al menos {longitud_min} caracteres"
-            )
-        return valor.strip()
-    
-    @staticmethod
-    def validar_archivo_csv(ruta: str) -> str:
-        """Valida que la ruta sea un archivo CSV válido"""
-        if not isinstance(ruta, str) or not ruta.endswith('.csv'):
-            raise CSVException("El archivo debe ser un CSV válido")
-        
-        import os
-        if not os.path.exists(ruta):
-            raise CSVException(f"El archivo no existe: {ruta}")
-        
-        return ruta
 
 
 # ============================================================================
