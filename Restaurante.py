@@ -20,19 +20,10 @@ from sqlalchemy.exc import IntegrityError
 from crud import cliente_crud, pedido_crud, ingrediente_crud, menu_crud
 from ElementoMenu import CrearMenu
 from statistics_tab import StatisticsTab
-# ============================================================================
-# IMPORTACIONES: MANEJO CENTRALIZADO DE ERRORES Y LOGGING
-# ============================================================================
 from error_handler import (
     logger,                  # Logger centralizado
-    manejo_errores,          # Decorador para captura automática de errores
     ValidadorCantidad,       # Validador de cantidades (Template Method)
-    ValidadorPrecio,         # Validador de precios (Template Method)
     ValidadorNombre,         # Validador de nombres (Template Method)
-    ValidadorEmail,          # Validador de emails (Template Method)
-    RestauranteException,    # Excepción base personalizada
-    StockException,          # Excepción de stock
-    MensajesError            # Mensajes de error consistentes
 )
 #importamos todo lo que sea necesario
 
