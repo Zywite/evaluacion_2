@@ -50,7 +50,7 @@ class GeneradorReporteTemplate(ABC):
         Las subclases especializan los pasos específicos.
         """
         try:
-            logger.info(f"Iniciando generación de reporte: {tipo_reporte}")
+            logger.info(f"Iniciando generacion de reporte: {tipo_reporte}")
             
             # PASO 1: Obtener datos
             datos = self._obtener_datos(tipo_reporte, db)

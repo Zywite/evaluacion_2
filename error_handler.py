@@ -26,12 +26,17 @@ class LoggerConfig:
             cls._logger.setLevel(logging.DEBUG)
             
             # Handler para archivo
-            file_handler = logging.FileHandler('restaurante.log')
+            file_handler = logging.FileHandler('restaurante.log', encoding='utf-8')
             file_handler.setLevel(logging.DEBUG)
             
             # Handler para consola
             console_handler = logging.StreamHandler(sys.stdout)
             console_handler.setLevel(logging.INFO)
+            # Usar 'replace' para manejar caracteres que no se pueden codificar en Windows
+            console_handler.setFormatter(logging.Formatter(
+                '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                datefmt='%Y-%m-%d %H:%M:%S'
+            ))
             
             # Formato
             formatter = logging.Formatter(
