@@ -205,12 +205,10 @@ package "Manejo de Errores" #FFECB3 {
         +{static} set_level(level: int)
     }
 
-    class Validador {
-        +{static} validar_nombre(nombre: str) -> bool
-        +{static} validar_cantidad(cantidad: str) -> float
-        +{static} validar_precio(precio: str) -> float
-        +{static} validar_archivo_csv(ruta: str) -> str
-    }
+    note right of LoggerConfig
+        Configuración centralizada de logging
+        con múltiples niveles (DEBUG, INFO, WARNING, ERROR)
+    end note
 
     class "RestauranteException" as RestException {
         +mensaje: str
@@ -222,8 +220,15 @@ package "Manejo de Errores" #FFECB3 {
         +__init__(archivo: str, mensaje: str)
     }
 
+    ' Nota: Los validadores ahora usan Template Method (ver Patrones)
+    note bottom of RestException
+        Los validadores (ValidadorCantidad, ValidadorPrecio, 
+        ValidadorNombre, ValidadorEmail) están definidos en 
+        el patrón Template Method bajo "Patrones de Diseño"
+        y heredan de ValidadorTemplate (ABC)
+    end note
+
     LoggerConfig --> RestException
-    Validador --> RestException
 }
 
 ' ============ PACKAGE: OPTIMIZACIÓN ============

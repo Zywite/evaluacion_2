@@ -879,6 +879,119 @@ class UtilArchivos:
         return os.path.splitext(ruta)[1].lower()
 \end{lstlisting}
 
+\subsubsection{Patrón Template Method - Validadores Especializados}
+
+El patrón Template Method se implementó en el módulo \texttt{error\_handler.py} para proporcionar un sistema de validación extensible y reutilizable. Este patrón define el esqueleto de un algoritmo en una clase base, permitiendo que las subclases implementen pasos específicos sin cambiar la estructura general.
+
+\paragraph{Estructura del Patrón:}
+
+\begin{lstlisting}[language=Python, caption=Patrón Template Method en Validadores]
+from abc import ABC, abstractmethod
+
+class ValidadorTemplate(ABC):
+    """Clase base que define el flujo de validación"""
+    
+    def validar(self, valor: str) -> bool:
+        """Template Method: Define el esqueleto del algoritmo"""
+        try:
+            # PASO 1: Preparar datos (hook personalizable)
+            valor_preparado = self._preparar_datos(valor)
+            logger.debug(f"Datos preparados: {valor_preparado}")
+            
+            # PASO 2: Validar datos específicos (abstracto - debe implementarse)
+            es_valido = self._validar_especifico(valor_preparado)
+            
+            # PASO 3: Registrar validación (hook personalizable)
+            self._registrar_validacion(valor_preparado, es_valido)
+            
+            return es_valido
+        except Exception as e:
+            logger.error(f"Error en validación: {e}")
+            self._registrar_validacion(valor, False)
+            return False
+    
+    def _preparar_datos(self, valor: str) -> str:
+        """Hook: Preparación de datos (puede ser override por subclases)"""
+        return str(valor).strip()
+    
+    @abstractmethod
+    def _validar_especifico(self, valor: str) -> bool:
+        """Método abstracto: Validación específica (DEBE implementarse)"""
+        pass
+    
+    def _registrar_validacion(self, valor: str, resultado: bool) -> None:
+        """Hook: Registro de validación (puede ser override por subclases)"""
+        estado = "válido" if resultado else "inválido"
+        logger.info(f"{self.__class__.__name__}: '{valor}' - {estado}")
+
+
+# Implementaciones concretas que heredan del Template Method
+class ValidadorCantidad(ValidadorTemplate):
+    """Valida que la cantidad sea un número positivo"""
+    def _validar_especifico(self, valor: str) -> bool:
+        try:
+            cant = float(valor)
+            return cant > 0
+        except (ValueError, TypeError):
+            return False
+
+class ValidadorPrecio(ValidadorTemplate):
+    """Valida que el precio sea un número no negativo"""
+    def _validar_especifico(self, valor: str) -> bool:
+        try:
+            precio = float(valor)
+            return precio >= 0
+        except (ValueError, TypeError):
+            return False
+
+class ValidadorNombre(ValidadorTemplate):
+    """Valida nombres/strings con longitud mínima y caracteres válidos"""
+    def __init__(self, longitud_minima: int = 2):
+        self.longitud_minima = longitud_minima
+    
+    def _validar_especifico(self, valor: str) -> bool:
+        return (len(valor) >= self.longitud_minima and 
+                valor.replace(" ", "").isalnum())
+
+class ValidadorEmail(ValidadorTemplate):
+    """Valida formato básico de email"""
+    def _validar_especifico(self, valor: str) -> bool:
+        return "@" in valor and "." in valor.split("@")[-1] if "@" in valor else False
+\end{lstlisting}
+
+\paragraph{Ventajas de la Implementación:}
+
+\begin{itemize}
+    \item \textbf{Reutilización}: El flujo de validación es centralizado y se ejecuta de manera consistente
+    \item \textbf{Extensibilidad}: Agregar nuevos validadores requiere solo implementar \texttt{\_validar\_especifico()}
+    \item \textbf{Consistencia}: Todos los validadores siguen el mismo protocolo de preparación, validación y registro
+    \item \textbf{Mantenibilidad}: Cambios en el flujo general se realizan una sola vez en la clase base
+    \item \textbf{Control}: La clase base mantiene el control sobre el orden de ejecución
+\end{itemize}
+
+\paragraph{Uso Práctico:}
+
+\begin{lstlisting}[language=Python, caption=Ejemplo de Uso de Validadores Template Method]
+# Crear instancias de validadores específicos
+validador_cantidad = ValidadorCantidad()
+validador_precio = ValidadorPrecio()
+validador_nombre = ValidadorNombre(longitud_minima=3)
+
+# Usar validadores (el template method se ejecuta automáticamente)
+if validador_cantidad.validar("100"):
+    print("✓ Cantidad válida")
+else:
+    print("✗ Cantidad inválida")
+
+if not validador_precio.validar("-50"):
+    print("✗ Precio negativo rechazado")
+
+if validador_nombre.validar("Producto Especial"):
+    print("✓ Nombre válido")
+else:
+    print("✗ Nombre inválido")
+\end{lstlisting}
+
 \subsection{Estructura de Directorios y Módulos}
 El proyecto mantiene la siguiente estructura modular:
 \begin{verbatim}
@@ -913,4 +1026,7 @@ Los siguientes commits representan las principales mejoras implementadas:
     \item \textbf{c4d3d44}: Mejoras - Manejo robusto de errores, documentación completa y sistema de caché
     \item \textbf{aea6582}: Mejora de interfaz e implementación de clientes
     \item \textbf{527dd88}: Implementar ORM con SQLAlchemy y optimizar gestión de ingredientes
+    \item \textbf{NUEVO}: Integración del Patrón Template Method en validadores
+    \item \textbf{NUEVO}: Refactor - Eliminación de clase Validador antigua, mantener solo Template Method
+    \item \textbf{NUEVO}: Actualización de documentación y ejemplos con nuevos validadores
 \end{itemize}\end{document}

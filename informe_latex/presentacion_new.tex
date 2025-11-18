@@ -267,6 +267,26 @@
     \end{exampleblock}
 \end{frame}
 
+\begin{frame}{Patrón Template Method - Validadores}
+    \begin{itemize}
+        \item \textbf{Implementado en error\_handler.py}: Sistema extensible de validación
+        \begin{itemize}
+            \item Clase base abstracta \texttt{ValidadorTemplate}
+            \item Flujo común: Preparar → Validar → Registrar
+            \item Subclases especializadas: Cantidad, Precio, Nombre, Email
+            \item Fácil de extender sin duplicar código
+        \end{itemize}
+    \end{itemize}
+    \begin{exampleblock}{Beneficios del Patrón}
+        \begin{itemize}
+            \item ✓ Reutilización de lógica común
+            \item ✓ Consistencia garantizada
+            \item ✓ Bajo acoplamiento entre validadores
+            \item ✓ Fácil de testear
+        \end{itemize}
+    \end{exampleblock}
+\end{frame}
+
 \begin{frame}{Sistema de Caché con TTL}
     \begin{itemize}
         \item \textbf{cache\_manager.py}: Optimización de operaciones frecuentes

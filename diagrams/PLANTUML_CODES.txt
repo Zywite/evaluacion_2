@@ -491,3 +491,37 @@ ATRIBUTOS:
   ~ : Paquete
 
 ===============================================================================
+NOTA IMPORTANTE - ACTUALIZACIÓN DE VALIDADORES
+===============================================================================
+
+A partir de la última actualización (Noviembre 2025):
+
+✅ CAMBIO: Los validadores Template Method se han integrado en error_handler.py
+
+ANTES:
+  - Validadores definidos en template_method.py
+  - Referencia en diagramas de clases
+
+AHORA:
+  - ValidadorTemplate, ValidadorCantidad, ValidadorPrecio, ValidadorNombre, 
+    ValidadorEmail están en error_handler.py
+  - template_method.py mantiene GeneradorReportesTemplate y sus implementaciones
+  - Diagrama de clases refleja validadores en paquete "Patrones de Diseño"
+  - Paquete "Manejo de Errores" ahora solo contiene LoggerConfig y excepciones
+
+UBICACIONES:
+  📁 error_handler.py
+     ├── ValidadorTemplate (ABC)
+     ├── ValidadorCantidad
+     ├── ValidadorPrecio
+     ├── ValidadorNombre
+     ├── ValidadorEmail
+     └── LoggerConfig
+
+  📁 template_method.py (referencia)
+     ├── GeneradorReportesTemplate (ABC)
+     ├── ReportePedidosDiarios
+     ├── ReporteProductosPopulares
+     └── ReporteClientesLeales
+
+===============================================================================
