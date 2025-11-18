@@ -20,6 +20,20 @@ from sqlalchemy.exc import IntegrityError
 from crud import cliente_crud, pedido_crud, ingrediente_crud, menu_crud
 from ElementoMenu import CrearMenu
 from statistics_tab import StatisticsTab
+# ============================================================================
+# IMPORTACIONES: MANEJO CENTRALIZADO DE ERRORES Y LOGGING
+# ============================================================================
+from error_handler import (
+    logger,                  # Logger centralizado
+    manejo_errores,          # Decorador para captura automática de errores
+    ValidadorCantidad,       # Validador de cantidades (Template Method)
+    ValidadorPrecio,         # Validador de precios (Template Method)
+    ValidadorNombre,         # Validador de nombres (Template Method)
+    ValidadorEmail,          # Validador de emails (Template Method)
+    RestauranteException,    # Excepción base personalizada
+    StockException,          # Excepción de stock
+    MensajesError            # Mensajes de error consistentes
+)
 #importamos todo lo que sea necesario
 
 class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para las ventanas
@@ -371,6 +385,12 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
         self.actualizar_treeview()   # se actualiza la pantalla
 
     def cargar_csv(self): # se crea la funcion para cargar el csv
+        """
+        Carga un archivo CSV con ingredientes.
+        Registra todas las acciones en logs centralizados.
+        """
+        logger.info("Iniciando carga de archivo CSV")
+        
         archivo = filedialog.askopenfilename(
             title="Seleccionar archivo CSV",
             filetypes=[("CSV files", "*.csv")]
@@ -378,16 +398,25 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
         # se selecciona el archivo csv
        
         if archivo: # si se selecciona un archivo
+            logger.info(f"Archivo seleccionado: {archivo}")
             try: # se intenta cargar el archivo
                 self.df_csv = pd.read_csv(archivo) # se carga el archivo csv
+                logger.debug(f"CSV cargado con {len(self.df_csv)} filas")
+                
                 if not all(col in self.df_csv.columns for col in ['nombre', 'unidad', 'cantidad']): # verifica la columnas del csv
+                    logger.error("CSV inválido: falta columnas requeridas (nombre, unidad, cantidad)")
                     CTkMessagebox(title="Error", message="El archivo CSV debe contener las columnas: nombre, unidad y cantidad", icon="warning")
                     # se detiene la carga del archivo
                     return # retorna el mensaje de error
+                
+                logger.info("CSV validado correctamente con columnas: nombre, unidad, cantidad")
                 self.mostrar_dataframe_en_tabla(self.df_csv) # se muestea el dataframe en la tabla
                 self.boton_agregar_stock.configure(command=self.agregar_csv_al_stock)
             except Exception as e:
+                logger.error(f"Error al cargar CSV: {str(e)}")
                 CTkMessagebox(title="Error", message=f"Error al cargar el archivo CSV: {str(e)}", icon="warning")
+        else:
+            logger.info("Carga de CSV cancelada por usuario")
         
     def mostrar_dataframe_en_tabla(self, df):
         if self.tabla_csv:
@@ -722,9 +751,14 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
         self.label_total.configure(text="Total: $0.00")
 
     def generar_boleta(self):
+        """
+        Genera boleta de pedido con todas las validaciones y logging.
+        Registra cada paso del proceso en el archivo de log.
+        """
         # Validar que se haya seleccionado un cliente primero
         cliente_seleccionado = self.combo_clientes_pedido.get()
         if not cliente_seleccionado or cliente_seleccionado == "Seleccione un cliente":
+            logger.warning("Intento de generar boleta sin cliente seleccionado")
             CTkMessagebox(
                 title="Error - Cliente Requerido", 
                 message="⚠️ Debes seleccionar un cliente antes de generar la boleta.", 
@@ -733,33 +767,41 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
             return
 
         if not self.pedido.menus:
+            logger.warning("Intento de generar boleta con pedido vacío")
             CTkMessagebox(title="Error", message="No hay elementos en el pedido para generar la boleta.", icon="warning")
             return
         
         # Obtener el ID del cliente a partir del texto del combobox
         try:
             cliente_id = int(cliente_seleccionado.split(" - ")[0])
+            logger.info(f"Generando boleta para cliente ID: {cliente_id}")
         except (ValueError, IndexError):
+            logger.error(f"Error: Cliente seleccionado inválido: {cliente_seleccionado}")
             CTkMessagebox(title="Error", message="El cliente seleccionado no es válido.", icon="warning")
             return
 
         session = get_db_session()
         try:
             items_data = []
+            total_pedido = 0
             for menu in self.pedido.menus.values():
                 items_data.append({
                     'menu_id': menu.id,
                     'cantidad': menu.cantidad,
                     'precio_unitario': menu.precio
                 })
+                total_pedido += menu.precio * menu.cantidad
+                logger.debug(f"Item en boleta: {menu.nombre} x {menu.cantidad} = ${menu.precio * menu.cantidad:.2f}")
             
             nuevo_pedido = pedido_crud.create_pedido(session, cliente_id, items_data)
+            logger.info(f"Pedido creado en BD con ID: {nuevo_pedido.id}")
             
-            print(f"DEBUG: Pedido ID generado: {nuevo_pedido.id}") # Debug print
             boleta = BoletaFacade(nuevo_pedido.id)
             pdf_path = boleta.generar_boleta()
+            logger.info(f"Boleta generada en: {pdf_path}")
 
             if not os.path.exists(pdf_path):
+                logger.error(f"Archivo de boleta no encontrado: {pdf_path}")
                 raise FileNotFoundError(f"No se pudo encontrar el archivo de la boleta: {pdf_path}")
                 
             if self.pdf_viewer_boleta is not None:
@@ -774,6 +816,7 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
             self.actualizar_treeview_pedido()
             self.label_total.configure(text="Total: $0.00")
             
+            logger.info(f"✓ Boleta procesada exitosamente - Total: ${total_pedido:.2f}")
             CTkMessagebox(
                 title="Éxito",
                 message=f"Boleta generada exitosamente y guardada en:\n{abs_pdf}",
@@ -782,8 +825,7 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
             
         except Exception as e:
             session.rollback()
-            import traceback # Import traceback module
-            traceback.print_exc() # Print full traceback
+            logger.error(f"Error al generar boleta: {str(e)}", exc_info=True)
             CTkMessagebox(title="Error", message=f"Error al generar la boleta: {str(e)}", icon="warning")
         finally:
             session.close()
@@ -959,12 +1001,33 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
             return False
 
     def ingresar_ingrediente(self):
+        """
+        Ingresa un nuevo ingrediente al sistema con validación integrada.
+        Usa validadores del patrón Template Method desde error_handler.
+        """
         nombre = self.entry_nombre.get()
         unidad = self.combo_unidad.get()
         cantidad = self.entry_cantidad.get()
 
-        if not self.validar_nombre(nombre) or not self.validar_cantidad(cantidad):
+        # ════════════════════════════════════════════════════════════
+        # VALIDACIÓN USANDO TEMPLATE METHOD
+        # ════════════════════════════════════════════════════════════
+        
+        # Validar nombre
+        validador_nombre = ValidadorNombre(longitud_minima=2)
+        if not validador_nombre.validar(nombre):
+            logger.warning(f"Intento de ingresar nombre inválido: '{nombre}'")
+            CTkMessagebox(title="Error", message="El nombre debe tener al menos 2 caracteres", icon="warning")
             return
+        
+        # Validar cantidad
+        validador_cantidad = ValidadorCantidad()
+        if not validador_cantidad.validar(cantidad):
+            logger.warning(f"Intento de ingresar cantidad inválida: '{cantidad}'")
+            CTkMessagebox(title="Error", message="La cantidad debe ser un número positivo", icon="warning")
+            return
+
+        logger.info(f"Ingresando nuevo ingrediente: {nombre} ({cantidad} {unidad})")
 
         session = get_db_session()
         try:
@@ -973,9 +1036,11 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
                 # Actualizar cantidad si el ingrediente ya existe
                 nueva_cantidad = ingrediente_existente.cantidad + Decimal(cantidad)
                 ingrediente_crud.update_ingrediente(session, ingrediente_existente.id, nombre, unidad, nueva_cantidad)
+                logger.info(f"Ingrediente '{nombre}' actualizado. Nueva cantidad: {nueva_cantidad} {unidad}")
             else:
                 # Crear nuevo ingrediente
                 ingrediente_crud.create_ingrediente(session, nombre, unidad, Decimal(cantidad))
+                logger.info(f"Ingrediente '{nombre}' creado exitosamente. Cantidad: {cantidad} {unidad}")
             
             self.actualizar_treeview()
 
@@ -985,6 +1050,7 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
             self.combo_unidad.set("unid")
         except Exception as e:
             session.rollback()
+            logger.error(f"Error al ingresar ingrediente: {str(e)}")
             CTkMessagebox(title="Error", message=f"Ocurrió un error: {e}", icon="error")
         finally:
             session.close()
