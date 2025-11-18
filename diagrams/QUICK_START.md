@@ -255,11 +255,13 @@ plantuml -Tpdf diagrams/class_diagram_with_improvements.puml
 1. Lee `class_diagram_with_improvements.puml` (visión completa)
 2. Identifica cada package (color)
 3. Sigue las relaciones entre clases
+4. Estudia el nuevo patrón Template Method en `class_diagram_complete.puml`
 
 ### Para Desarrollo
 1. Usa `mer_diagram.puml` para queries SQL
 2. Usa `class_diagram_complete.puml` para código
 3. Consulta `PLANTUML_CODES.txt` para templates rápidos
+4. Revisa `template_method.py` para ver implementación del patrón Template Method
 
 ---
 

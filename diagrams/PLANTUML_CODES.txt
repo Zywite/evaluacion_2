@@ -353,6 +353,89 @@ GUI --> Modules : llama
 @enduml
 
 ===============================================================================
+6. DIAGRAMA DE CLASES - TEMPLATE METHOD (NUEVO)
+===============================================================================
+
+@startuml TemplateMethodDiagram
+skinparam classAttributeIconSize 0
+skinparam style strictuml
+skinparam backgroundColor #FEFEFE
+
+' Template Method - Validadores
+abstract class ValidadorTemplate {
+    #validar(valor: str) -> bool <<template>>
+    --
+    +{abstract} _validar_especifico(valor: str) -> bool
+    #_preparar_datos(valor: str) -> str
+    #_registrar_validacion(valor: str, resultado: bool)
+}
+
+note bottom of ValidadorTemplate
+  Template Method:
+  Define flujo común de validación
+  Subclases implementan lo específico
+end note
+
+class ValidadorCantidad extends ValidadorTemplate {
+    +_validar_especifico(valor: str) -> bool
+}
+
+class ValidadorPrecio extends ValidadorTemplate {
+    +_validar_especifico(valor: str) -> bool
+}
+
+class ValidadorNombre extends ValidadorTemplate {
+    #_preparar_datos(valor: str) -> str
+    +_validar_especifico(valor: str) -> bool
+}
+
+class ValidadorEmail extends ValidadorTemplate {
+    +_validar_especifico(valor: str) -> bool
+}
+
+' Template Method - Generadores de Reportes
+abstract class GeneradorReportesTemplate {
+    +generar_reporte(parametros: Dict) -> Dict <<template>>
+    --
+    +{abstract} _obtener_datos(parametros: Dict) -> List
+    +{abstract} _procesar_datos(datos: List, parametros: Dict) -> List
+    +{abstract} _formatear_reporte(datos: List, parametros: Dict) -> Dict
+    #_guardar_reporte(reporte: Dict, parametros: Dict) -> str
+}
+
+note bottom of GeneradorReportesTemplate
+  Template Method:
+  Define flujo común de generación
+  Cada reporte implementa pasos específicos
+end note
+
+class ReportePedidosDiarios extends GeneradorReportesTemplate {
+    +_obtener_datos(parametros: Dict) -> List
+    +_procesar_datos(datos: List, parametros: Dict) -> List
+    +_formatear_reporte(datos: List, parametros: Dict) -> Dict
+}
+
+class ReporteProductosPopulares extends GeneradorReportesTemplate {
+    +_obtener_datos(parametros: Dict) -> List
+    +_procesar_datos(datos: List, parametros: Dict) -> List
+    +_formatear_reporte(datos: List, parametros: Dict) -> Dict
+}
+
+class ReporteClientesLeales extends GeneradorReportesTemplate {
+    +_obtener_datos(parametros: Dict) -> List
+    +_procesar_datos(datos: List, parametros: Dict) -> List
+    +_formatear_reporte(datos: List, parametros: Dict) -> Dict
+}
+
+legend right
+    Línea punteada y <<template>> = Template Method
+    extends = Implementación concreta
+    <<abstract>> = Método abstracto (debe implementarse)
+endlegend
+
+@enduml
+
+===============================================================================
 INSTRUCCIONES DE USO
 ===============================================================================
 

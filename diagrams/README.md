@@ -165,12 +165,38 @@ Menu (N) ──── (N) Ingrediente (a través de MenuIngrediente)
 
 ## 💡 Patrones de Diseño Representados
 
+### Patrones Implementados:
+
 1. **Singleton**: Stock (gestión centralizada)
+   - Control centralizado del inventario
+   - Única instancia garantizada
+
 2. **Factory**: MenuCatalog (creación de menús)
+   - Creación flexible de menús
+   - Estandarización de construcción
+
 3. **Facade**: BoletaFacade (simplificación)
+   - Interfaz simplificada
+   - Oculta complejidad
+
 4. **Protocol/Interface**: IMenu (tipado estructural)
+   - Interfaz moderna de Python
+   - Tipado estructural flexible
+
 5. **Observer (implícito)**: Actualización automática de GUI
+   - Sincronización automática
+   - Desacoplamiento de componentes
+
 6. **Decorator**: @cache_funciones, @manejo_errores
+   - Funcionalidad transversal
+   - Decoradores reutilizables
+
+7. **⭐ NUEVO - Template Method**: `template_method.py`
+   - `ValidadorTemplate` - Define flujo de validación
+   - `GeneradorReportesTemplate` - Define flujo de generación de reportes
+   - 4 validadores específicos (Cantidad, Precio, Nombre, Email)
+   - 3 generadores de reportes (Pedidos, Productos, Clientes)
+   - Ver documentación completa en template_method.py
 
 ---
 
