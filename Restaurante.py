@@ -762,7 +762,7 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
             return
 
         if not self.pedido.menus:
-            logger.warning("Intento de generar boleta con pedido vacío")
+            logger.warning("Intento de generar boleta con pedido vacio")
             CTkMessagebox(title="Error", message="No hay elementos en el pedido para generar la boleta.", icon="warning")
             return
         
@@ -771,7 +771,7 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
             cliente_id = int(cliente_seleccionado.split(" - ")[0])
             logger.info(f"Generando boleta para cliente ID: {cliente_id}")
         except (ValueError, IndexError):
-            logger.error(f"Error: Cliente seleccionado inválido: {cliente_seleccionado}")
+            logger.error(f"Error: Cliente seleccionado invalido: {cliente_seleccionado}")
             CTkMessagebox(title="Error", message="El cliente seleccionado no es válido.", icon="warning")
             return
 
@@ -813,7 +813,7 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
             
             logger.info(f"Boleta procesada exitosamente - Total: ${total_pedido:.2f}")
             CTkMessagebox(
-                title="Éxito",
+                title="Exito",
                 message=f"Boleta generada exitosamente y guardada en:\n{abs_pdf}",
                 icon="info"
             )

@@ -4,6 +4,8 @@ import os
 from database import get_db_session
 from models import Pedido as PedidoModel, PedidoItem
 from sqlalchemy.orm import Session, joinedload
+from crud import boleta_crud
+from error_handler import logger, RestauranteException
 
 class BoletaFacade:
     """
@@ -129,9 +131,36 @@ class BoletaFacade:
         return pdf_path
 
     def generar_boleta(self):
-        """Coordina la generación de la boleta y la creación del PDF."""
-        if self.generar_detalle_boleta():
-            return self.crear_pdf()
-        else:
-            # Manejar el caso en que el pedido no se encuentra
-            raise Exception(f"No se pudo generar la boleta porque el pedido con ID {self.pedido_id} no fue encontrado.")
+        """
+        Coordina la generación de la boleta y la creación del PDF.
+        Guarda la información de la boleta en la base de datos.
+        """
+        if not self.generar_detalle_boleta():
+            raise RestauranteException(
+                f"No se pudo generar la boleta porque el pedido con ID {self.pedido_id} no fue encontrado."
+            )
+        
+        # Crear PDF
+        pdf_path = self.crear_pdf()
+        logger.info(f"PDF de boleta creado en: {pdf_path}")
+        
+        # Guardar boleta en la BD
+        session = get_db_session()
+        try:
+            from decimal import Decimal
+            boleta = boleta_crud.create_boleta(
+                session=session,
+                pedido_id=self.pedido_id,
+                subtotal=Decimal(str(self.subtotal)),
+                iva=Decimal(str(self.iva)),
+                total=Decimal(str(self.total)),
+                pdf_path=pdf_path,
+                estado='generada'
+            )
+            logger.info(f"Boleta guardada en BD - ID: {boleta.id}, Pedido ID: {self.pedido_id}")
+            return pdf_path
+        except Exception as e:
+            logger.error(f"Error al guardar boleta en BD: {str(e)}", exc_info=True)
+            raise RestauranteException(f"Error al guardar boleta en BD: {str(e)}")
+        finally:
+            session.close()

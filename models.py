@@ -58,3 +58,22 @@ class PedidoItem(Base):
     subtotal: Mapped[Decimal] = mapped_column(DECIMAL(10, 2))
     pedido: Mapped["Pedido"] = relationship(back_populates="items")
     menu: Mapped["Menu"] = relationship()
+
+class Boleta(Base):
+    """
+    Modelo para almacenar información de boletas generadas.
+    
+    Relación 1:1 con Pedido (cada pedido tiene una boleta).
+    Almacena los datos calculados (subtotal, IVA) y la ruta del PDF
+    para referencia y auditoría.
+    """
+    __tablename__ = 'boletas'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    pedido_id: Mapped[int] = mapped_column(ForeignKey('pedidos.id'), unique=True)
+    fecha_generacion: Mapped[datetime.datetime] = mapped_column(DateTime, default=datetime.datetime.utcnow)
+    subtotal: Mapped[Decimal] = mapped_column(DECIMAL(10, 2))
+    iva: Mapped[Decimal] = mapped_column(DECIMAL(10, 2))
+    total: Mapped[Decimal] = mapped_column(DECIMAL(10, 2))
+    pdf_path: Mapped[str] = mapped_column(String(255))
+    estado: Mapped[str] = mapped_column(String(50), default='generada')  # generada, anulada, etc.
+    pedido: Mapped["Pedido"] = relationship()
