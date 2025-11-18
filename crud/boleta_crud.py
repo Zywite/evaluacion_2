@@ -8,6 +8,7 @@ permitiendo auditoría y rastreo de boletas por pedido.
 from sqlalchemy.orm import Session
 from models import Boleta
 from decimal import Decimal
+from typing import Optional
 import datetime
 
 
@@ -77,7 +78,7 @@ def get_boleta_by_pedido_id(session: Session, pedido_id: int) -> Boleta:
     return session.query(Boleta).filter(Boleta.pedido_id == pedido_id).first()
 
 
-def get_all_boletas(session: Session, estado: str = None) -> list:
+def get_all_boletas(session: Session, estado: Optional[str] = None) -> list:
     """
     Obtiene todas las boletas, opcionalmente filtradas por estado.
     
