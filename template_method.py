@@ -10,10 +10,16 @@ VENTAJAS:
 - Control sobre el flujo del algoritmo
 - Evita duplicación en operaciones similares
 - Fácil de extender con nuevas variantes
+
+PROGRAMACIÓN FUNCIONAL:
+Este módulo incluye ejemplos de programación funcional con reduce():
+- GeneradorReportesTemplate._formatear_reporte() usa reduce() para acumular totales
+  Demuestra cómo aplicar reduce() en un contexto práctico con diccionarios complejos.
 """
 
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
+from functools import reduce
 from error_handler import logger, RestauranteException
 from datetime import datetime
 import json
@@ -273,9 +279,26 @@ class ReportePedidosDiarios(GeneradorReportesTemplate):
         return datos
     
     def _formatear_reporte(self, datos: List[Any], parametros: Dict) -> Dict[str, Any]:
-        """Formatea los datos en estructura de reporte"""
-        total_monto = sum(p['monto'] for p in datos)
-        total_iva = sum(p['iva'] for p in datos)
+        """Formatea los datos en estructura de reporte usando reduce para cálculos"""
+        # Usar reduce para calcular totales de forma funcional
+        def acumular_totales(acc, pedido):
+            return {
+                'monto_total': acc['monto_total'] + pedido['monto'],
+                'iva_total': acc['iva_total'] + pedido['iva']
+            }
+        
+        # Si hay datos, calcular totales con reduce
+        if datos:
+            totales = reduce(
+                acumular_totales,
+                datos,
+                {'monto_total': 0, 'iva_total': 0}
+            )
+            total_monto = totales['monto_total']
+            total_iva = totales['iva_total']
+        else:
+            total_monto = 0
+            total_iva = 0
         
         return {
             'tipo': 'Reporte de Pedidos Diarios',

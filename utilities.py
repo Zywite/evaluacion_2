@@ -4,12 +4,17 @@ Módulo de utilidades para la aplicación de gestión de restaurante.
 Proporciona funciones auxiliares reutilizables para:
 - Validación de datos
 - Formateo de valores monetarios
-- Cálculo de totales
+- Cálculo de totales (con programación funcional)
 - Operaciones con archivos
+
+PROGRAMACIÓN FUNCIONAL:
+- calcular_total_pedido(): Usa reduce() para acumular totales de items
+  Demuestra cómo aplicar el paradigma funcional con operaciones acumulativas.
 """
 
 from decimal import Decimal, ROUND_HALF_UP
 from typing import List, Dict
+from functools import reduce
 import os
 
 
@@ -89,7 +94,10 @@ class UtilCalculos:
     @staticmethod
     def calcular_total_pedido(items: List[Dict]) -> Decimal:
         """
-        Calcula el total de un pedido sumando los precios de items.
+        Calcula el total de un pedido usando reduce (programación funcional).
+        
+        Implementa el cálculo de totales de forma funcional usando reduce(),
+        demostrando el paradigma de programación funcional en Python.
         
         Args:
             items (List[Dict]): Lista de items con estructura:
@@ -113,9 +121,8 @@ class UtilCalculos:
             >>> UtilCalculos.calcular_total_pedido(items)
             Decimal('240.00')
         """
-        total = Decimal('0')
-        
-        for item in items:
+        def acumular_item(total_acum: Decimal, item: Dict) -> Decimal:
+            """Función acumulativa: suma el item al total"""
             try:
                 precio = Decimal(str(item.get('precio', 0)))
                 cantidad = Decimal(str(item.get('cantidad', 1)))
@@ -124,10 +131,15 @@ class UtilCalculos:
                 subtotal = precio * cantidad
                 descuento_monto = (subtotal * descuento) / Decimal('100')
                 
-                total += subtotal - descuento_monto
+                return total_acum + (subtotal - descuento_monto)
             except (ValueError, TypeError, KeyError) as e:
                 raise ValueError(f"Item inválido en pedido: {e}")
         
+        # Usar reduce() para acumular todos los items
+        if not items:
+            return Decimal('0.00')
+        
+        total = reduce(acumular_item, items, Decimal('0'))
         return total.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
     
     @staticmethod
