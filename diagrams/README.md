@@ -191,12 +191,15 @@ Menu (N) ──── (N) Ingrediente (a través de MenuIngrediente)
    - Funcionalidad transversal
    - Decoradores reutilizables
 
-7. **⭐ NUEVO - Template Method**: `template_method.py`
-   - `ValidadorTemplate` - Define flujo de validación
-   - `GeneradorReportesTemplate` - Define flujo de generación de reportes
-   - 4 validadores específicos (Cantidad, Precio, Nombre, Email)
-   - 3 generadores de reportes (Pedidos, Productos, Clientes)
-   - Ver documentación completa en template_method.py
+7. **⭐ NUEVO - Template Method**: `template_method.py` + `error_handler.py`
+   - **En error_handler.py** (Integrados):
+     - `ValidadorTemplate` - Define flujo de validación
+     - 4 validadores específicos (Cantidad, Precio, Nombre, Email)
+   - **En template_method.py** (Módulo de referencia completo):
+     - `GeneradorReportesTemplate` - Define flujo de generación de reportes
+     - 3 generadores de reportes (Pedidos, Productos, Clientes)
+   - **Uso**: Los validadores ahora se pueden usar directamente desde error_handler
+   - Ver documentación completa en template_method.py y error_handler.py
 
 ---
 

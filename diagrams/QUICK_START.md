@@ -261,7 +261,10 @@ plantuml -Tpdf diagrams/class_diagram_with_improvements.puml
 1. Usa `mer_diagram.puml` para queries SQL
 2. Usa `class_diagram_complete.puml` para código
 3. Consulta `PLANTUML_CODES.txt` para templates rápidos
-4. Revisa `template_method.py` para ver implementación del patrón Template Method
+4. Revisa `template_method.py` para ver la implementación completa del patrón
+5. **NUEVO**: Los validadores Template Method ahora están integrados en `error_handler.py`
+   - Importa: `from error_handler import ValidadorCantidad, ValidadorPrecio, etc.`
+   - Los generadores de reportes aún están en `template_method.py`
 
 ---
 
