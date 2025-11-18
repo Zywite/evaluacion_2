@@ -1214,13 +1214,13 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
     def generar_reporte_json(self):
         """Genera reporte en formato JSON"""
         try:
-            logger.info("Iniciando generación de reporte JSON")
+            logger.info("Iniciando generacion de reporte JSON")
             archivo = generar_reporte("json", "pedidos")
             logger.info(f"Reporte JSON generado: {archivo}")
             
             CTkMessagebox(
-                title="Éxito",
-                message=f"Reporte JSON generado exitosamente\n\nUbicación: {archivo}",
+                title="Exito",
+                message=f"Reporte JSON generado exitosamente\n\nUbicacion: {archivo}",
                 icon="info"
             )
         except Exception as e:
@@ -1234,13 +1234,13 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
     def generar_reporte_csv(self):
         """Genera reporte en formato CSV"""
         try:
-            logger.info("Iniciando generación de reporte CSV")
+            logger.info("Iniciando generacion de reporte CSV")
             archivo = generar_reporte("csv", "pedidos")
             logger.info(f"Reporte CSV generado: {archivo}")
             
             CTkMessagebox(
-                title="Éxito",
-                message=f"Reporte CSV generado exitosamente\n\nUbicación: {archivo}",
+                title="Exito",
+                message=f"Reporte CSV generado exitosamente\n\nUbicacion: {archivo}",
                 icon="info"
             )
         except Exception as e:
@@ -1254,13 +1254,13 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
     def generar_reporte_html(self):
         """Genera reporte en formato HTML"""
         try:
-            logger.info("Iniciando generación de reporte HTML")
+            logger.info("Iniciando generacion de reporte HTML")
             archivo = generar_reporte("html", "pedidos")
             logger.info(f"Reporte HTML generado: {archivo}")
             
             CTkMessagebox(
-                title="Éxito",
-                message=f"Reporte HTML generado exitosamente\n\nUbicación: {archivo}",
+                title="Exito",
+                message=f"Reporte HTML generado exitosamente\n\nUbicacion: {archivo}",
                 icon="info"
             )
         except Exception as e:

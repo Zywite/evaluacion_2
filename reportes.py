@@ -207,7 +207,24 @@ class ReporteHTML(GeneradorReporteTemplate):
     
     def _formatear_contenido(self, datos: List[Dict]) -> str:
         """Formatea datos como HTML"""
-        html = """
+        if not datos:
+            headers = ""
+            filas = ""
+        else:
+            # Headers
+            headers_list = list(datos[0].keys())
+            headers = '\n'.join([f"<th>{h}</th>" for h in headers_list])
+            
+            # Filas
+            filas_list = []
+            for dato in datos:
+                fila = '\n'.join([f"<td>{dato.get(h, '')}</td>" for h in headers_list])
+                filas_list.append(f"<tr>\n{fila}\n</tr>")
+            filas = '\n'.join(filas_list)
+        
+        # Usar f-string para evitar conflictos con llaves del CSS
+        fecha = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        html = f"""
         <!DOCTYPE html>
         <html lang="es">
         <head>
@@ -215,12 +232,12 @@ class ReporteHTML(GeneradorReporteTemplate):
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Reporte</title>
             <style>
-                body { font-family: Arial, sans-serif; margin: 20px; }
-                table { border-collapse: collapse; width: 100%; }
-                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                th { background-color: #4CAF50; color: white; }
-                tr:nth-child(even) { background-color: #f2f2f2; }
-                .header { color: #333; margin-bottom: 20px; }
+                body {{ font-family: Arial, sans-serif; margin: 20px; }}
+                table {{ border-collapse: collapse; width: 100%; }}
+                th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
+                th {{ background-color: #4CAF50; color: white; }}
+                tr:nth-child(even) {{ background-color: #f2f2f2; }}
+                .header {{ color: #333; margin-bottom: 20px; }}
             </style>
         </head>
         <body>
@@ -241,27 +258,7 @@ class ReporteHTML(GeneradorReporteTemplate):
         </body>
         </html>
         """
-        
-        if not datos:
-            headers = ""
-            filas = ""
-        else:
-            # Headers
-            headers_list = list(datos[0].keys())
-            headers = '\n'.join([f"<th>{h}</th>" for h in headers_list])
-            
-            # Filas
-            filas_list = []
-            for dato in datos:
-                fila = '\n'.join([f"<td>{dato.get(h, '')}</td>" for h in headers_list])
-                filas_list.append(f"<tr>\n{fila}\n</tr>")
-            filas = '\n'.join(filas_list)
-        
-        return html.format(
-            fecha=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            headers=headers,
-            filas=filas
-        )
+        return html
     
     def _guardar_archivo(self, contenido: str, tipo_reporte: str) -> str:
         """Guarda contenido en archivo HTML"""
