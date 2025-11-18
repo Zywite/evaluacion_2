@@ -19,9 +19,9 @@ from datetime import datetime
 import json
 
 
-# ============================================================================
+
 # TEMPLATE METHOD 1: VALIDADOR BASE
-# ============================================================================
+
 
 class ValidadorTemplate(ABC):
     """
@@ -80,9 +80,8 @@ class ValidadorTemplate(ABC):
         return self.__class__.__name__
 
 
-# ============================================================================
 # IMPLEMENTACIONES CONCRETAS - Validadores Específicos
-# ============================================================================
+
 
 class ValidadorCantidad(ValidadorTemplate):
     """
@@ -153,9 +152,9 @@ class ValidadorEmail(ValidadorTemplate):
         return len(usuario) > 0 and '.' in dominio
 
 
-# ============================================================================
+
 # TEMPLATE METHOD 2: GENERADOR DE REPORTES BASE
-# ============================================================================
+
 
 class GeneradorReportesTemplate(ABC):
     """
@@ -241,9 +240,9 @@ class GeneradorReportesTemplate(ABC):
             raise
 
 
-# ============================================================================
+
 # IMPLEMENTACIONES CONCRETAS - Generadores de Reportes
-# ============================================================================
+
 
 class ReportePedidosDiarios(GeneradorReportesTemplate):
     """
@@ -404,9 +403,9 @@ class ReporteClientesLeales(GeneradorReportesTemplate):
         }
 
 
-# ============================================================================
+
 # EJEMPLO DE USO Y PRUEBAS
-# ============================================================================
+
 
 if __name__ == "__main__":
     """
