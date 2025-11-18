@@ -807,7 +807,7 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
             self.actualizar_treeview_pedido()
             self.label_total.configure(text="Total: $0.00")
             
-            logger.info(f"✓ Boleta procesada exitosamente - Total: ${total_pedido:.2f}")
+            logger.info(f"Boleta procesada exitosamente - Total: ${total_pedido:.2f}")
             CTkMessagebox(
                 title="Éxito",
                 message=f"Boleta generada exitosamente y guardada en:\n{abs_pdf}",
