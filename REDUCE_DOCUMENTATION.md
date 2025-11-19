@@ -1,6 +1,6 @@
-# 📚 Documentación: Programación Funcional con `reduce()`
+#  Documentación: Programación Funcional con `reduce()`
 
-## 🎯 ¿Qué es `reduce()`?
+##  ¿Qué es `reduce()`?
 
 `reduce()` es una función de programación funcional que **acumula valores** de un iterable aplicando una función de forma repetida.
 
@@ -34,9 +34,9 @@ Resultado: 15
 
 ---
 
-## 💻 Implementaciones en el Proyecto
+##  Implementaciones en el Proyecto
 
-### 1️⃣ `utilities.py` - `calcular_total_pedido_reduce()`
+### 1️ `utilities.py` - `calcular_total_pedido_reduce()`
 
 **Ubicación:** `utilities.py`, línea ~135
 
@@ -89,7 +89,7 @@ print(f"Total: ${total_tradicional}")  # Total: $240.00 (igual resultado)
 
 ---
 
-### 2️⃣ `template_method.py` - `GeneradorReportesTemplate._formatear_reporte()`
+### 2️ `template_method.py` - `GeneradorReportesTemplate._formatear_reporte()`
 
 **Ubicación:** `template_method.py`, línea ~275
 
@@ -160,36 +160,36 @@ print(f"IVA: ${reporte['resumen']['iva_total']}")      # IVA: $35150
 
 ---
 
-## 🔄 Comparación: Loop vs sum() vs reduce()
+##  Comparación: Loop vs sum() vs reduce()
 
 ### Caso: Calcular total de pedido
 
-**1️⃣ CON LOOP TRADICIONAL** (Imperativo)
+**1️ CON LOOP TRADICIONAL** (Imperativo)
 ```python
 total = 0
 for item in items:
     total += item['precio'] * item['cantidad']
 # total = 250
 ```
-✅ Legible para principiantes
-✅ Fácil de debuggear
-❌ Más verboso
+Legible para principiantes
+Fácil de debuggear
+Más verboso
 
 ---
 
-**2️⃣ CON sum()** (Pythonic, RECOMENDADO)
+**2️ CON sum()** (Pythonic, RECOMENDADO)
 ```python
 total = sum(item['precio'] * item['cantidad'] for item in items)
 # total = 250
 ```
-✅ Conciso y legible
-✅ Idiomatic Python
-✅ Buena performance
-❌ Limitado a casos simples
+ Conciso y legible
+ Idiomatic Python
+ Buena performance
+ Limitado a casos simples
 
 ---
 
-**3️⃣ CON reduce()** (Funcional)
+**3️ CON reduce()** (Funcional)
 ```python
 from functools import reduce
 
@@ -200,27 +200,27 @@ total = reduce(
 )
 # total = 250
 ```
-✅ Programación funcional pura
-✅ Muy flexible
-❌ Menos legible
-❌ Curva de aprendizaje más alta
+ Programación funcional pura
+ Muy flexible
+ Menos legible
+ Curva de aprendizaje más alta
 
 ---
 
-## 📋 Recomendaciones
+##  Recomendaciones
 
 | Caso | Usar |
 |------|------|
-| **Suma simple** | ✅ `sum()` |
-| **Promedio, máximo, mínimo** | ✅ `sum()`, `max()`, `min()` |
-| **Operación iterativa compleja** | ✅ `loop for` |
-| **Acumular diccionarios** | ✅ `reduce()` |
-| **Pipeline funcional** | ✅ `reduce()` |
-| **Cálculos financieros con precisión** | ✅ `reduce()` (con Decimal) |
+| **Suma simple** |  `sum()` |
+| **Promedio, máximo, mínimo** |  `sum()`, `max()`, `min()` |
+| **Operación iterativa compleja** |  `loop for` |
+| **Acumular diccionarios** |  `reduce()` |
+| **Pipeline funcional** | `reduce()` |
+| **Cálculos financieros con precisión** |  `reduce()` (con Decimal) |
 
 ---
 
-## 🚀 Casos de Uso Prácticos
+##  Casos de Uso Prácticos
 
 ### Caso 1: Acumular Moneda Decimal (Precisión Financiera)
 ```python
@@ -278,9 +278,9 @@ precio_final = reduce(
 
 ---
 
-## ⚠️ Errores Comunes
+##  Errores Comunes
 
-### ❌ Error 1: No manejar lista vacía
+### Error 1: No manejar lista vacía
 ```python
 # INCORRECTO
 total = reduce(lambda a, b: a + b, [])  # ValueError!
@@ -289,7 +289,7 @@ total = reduce(lambda a, b: a + b, [])  # ValueError!
 total = reduce(lambda a, b: a + b, [], 0)  # Retorna 0
 ```
 
-### ❌ Error 2: Olvidar valor inicial
+###  Error 2: Olvidar valor inicial
 ```python
 # INCORRECTO - Asume primer elemento como inicial
 resultado = reduce(lambda a, b: a + b, numeros)
@@ -298,7 +298,7 @@ resultado = reduce(lambda a, b: a + b, numeros)
 resultado = reduce(lambda a, b: a + b, numeros, 0)
 ```
 
-### ❌ Error 3: Función acumulativa con tipo incorrecto
+###  Error 3: Función acumulativa con tipo incorrecto
 ```python
 # INCORRECTO - Acumulador y elemento tienen tipos diferentes
 reduce(lambda acc, item: acc + item['precio'], items, 0)  # Error!
@@ -309,7 +309,7 @@ reduce(lambda acc, item: acc + item['precio'], items, Decimal('0'))
 
 ---
 
-## 📊 Performance
+##  Performance
 
 Para la mayoría de operaciones, la diferencia es mínima:
 
@@ -325,7 +325,7 @@ reduce():      ~52ms
 
 ---
 
-## 📖 Referencias
+##  Referencias
 
 - [Python docs: functools.reduce()](https://docs.python.org/3/library/functools.html#functools.reduce)
 - [Functional Programming in Python](https://realpython.com/python-functional-programming/)
@@ -333,20 +333,20 @@ reduce():      ~52ms
 
 ---
 
-## 🎓 Resumen
+##  Resumen
 
-✅ **`reduce()` es útil para:**
+**`reduce()` es útil para:**
 - Acumular valores de forma funcional
 - Operaciones iterativas complejas
 - Cálculos con precisión decimal
 - Código que sigue paradigma funcional
 
-✅ **Usar en el proyecto cuando:**
+ **Usar en el proyecto cuando:**
 - Necesites acumular diccionarios complejos
 - Trabajes con Decimal para precisión monetaria
 - El código sea más legible que alternativas
 
-✅ **Evitar cuando:**
+ **Evitar cuando:**
 - Basta con `sum()`, `max()`, `min()`
 - El código sea menos legible que un loop
 
