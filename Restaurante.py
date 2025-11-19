@@ -627,6 +627,9 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
         
         # Actualizar vista del stock
         self.actualizar_treeview()
+        
+        # ✅ NUEVO: Regenerar tarjetas de menú para mostrar cambios en tiempo real
+        self.generar_menus()
     
     def cargar_icono_menu(self, ruta_icono):
         imagen = Image.open(ruta_icono)
@@ -708,6 +711,9 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
         self.actualizar_treeview()
         total = self.pedido.calcular_total()
         self.label_total.configure(text=f"Total: ${total:.2f}")
+        
+        # ✅ NUEVO: Regenerar tarjetas de menú para mostrar cambios en tiempo real
+        self.generar_menus()
 
     def eliminar_todo(self):
         if not self.pedido.menus:
@@ -743,6 +749,9 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
         self.actualizar_treeview_pedido()
         self.actualizar_treeview()
         self.label_total.configure(text="Total: $0.00")
+        
+        # ✅ NUEVO: Regenerar tarjetas de menú para mostrar cambios en tiempo real
+        self.generar_menus()
 
     def generar_boleta(self):
         """
