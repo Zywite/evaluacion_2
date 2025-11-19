@@ -937,19 +937,31 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
         tarjeta = ctk.CTkFrame(
             self.tarjetas_frame,
             corner_radius=10,
-            border_width=1,
-            border_color="#4CAF50" if hay_ingredientes else "#FF0000",
-            width=120, # Ancho aumentado para mejor visualización
-            height=150, # Alto aumentado
-            fg_color="gray17" if hay_ingredientes else "gray30",
+            border_width=2,
+            border_color="#4CAF50" if hay_ingredientes else "#FF6B6B",
+            width=120,
+            height=150,
+            fg_color="gray17" if hay_ingredientes else "#2C2C2C",
         )
         
-        # Usamos lambda para el evento click
+        # Configurar interactividad solo si hay ingredientes
         if hay_ingredientes:
             tarjeta.bind("<Button-1>", lambda event, m=menu: self.tarjeta_click(event, m))
-            tarjeta.bind("<Enter>", lambda event: tarjeta.configure(border_color="#1976D2"))
-            tarjeta.bind("<Leave>", lambda event: tarjeta.configure(border_color="#4CAF50"))
+            tarjeta.bind("<Enter>", lambda event: tarjeta.configure(
+                border_color="#1976D2",
+                fg_color="gray16"
+            ))
+            tarjeta.bind("<Leave>", lambda event: tarjeta.configure(
+                border_color="#4CAF50",
+                fg_color="gray17"
+            ))
+            # Cursor de mano para indicar que es clickeable
+            tarjeta.configure(cursor="hand2")
+        else:
+            # Cursor de no-permitido para indicar que está deshabilitado
+            tarjeta.configure(cursor="circle")
 
+        # Cargar imagen si existe
         if getattr(menu, "icono_path", None):
             try:
                 icono = self.cargar_icono_menu(menu.icono_path)
@@ -957,23 +969,31 @@ class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para l
                 imagen_label.pack(pady=(10, 5), padx=10)
                 if hay_ingredientes:
                     imagen_label.bind("<Button-1>", lambda event, m=menu: self.tarjeta_click(event, m))
+                    imagen_label.configure(cursor="hand2")
+                else:
+                    imagen_label.configure(cursor="circle")
             except Exception as e:
-                print(f"No se pudo cargar la imagen '{menu.icono_path}': {e}")
+                logger.warning(f"No se pudo cargar la imagen '{menu.icono_path}': {e}")
 
-        nombre_texto = f"{menu.nombre}\n${menu.precio}"
+        # Construir texto de la tarjeta
+        nombre_texto = f"{menu.nombre}\n${menu.precio:.2f}"
         if not hay_ingredientes:
-            nombre_texto += "\n(Agotado)"
+            nombre_texto += "\n🚫 AGOTADO"
         
         texto_label = ctk.CTkLabel(
             tarjeta,
             text=nombre_texto,
-            text_color="white" if hay_ingredientes else "gray60",
-            font=("Helvetica", 11),
+            text_color="white" if hay_ingredientes else "#FF6B6B",
+            font=("Helvetica", 11, "bold" if not hay_ingredientes else "normal"),
             bg_color="transparent",
         )
         texto_label.pack(pady=(0, 10), padx=5)
+        
         if hay_ingredientes:
             texto_label.bind("<Button-1>", lambda event, m=menu: self.tarjeta_click(event, m))
+            texto_label.configure(cursor="hand2")
+        else:
+            texto_label.configure(cursor="circle")
         
         # Añadir la tarjeta al grid dinámicamente
         num_tarjetas = len(self.tarjetas_frame.winfo_children())
