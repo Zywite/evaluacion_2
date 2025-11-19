@@ -1,8 +1,8 @@
-# Sistema de Gestión de Restaurante 🍽️
+# Sistema de Gestión de Restaurante 
 
 Sistema completo de gestión para restaurantes implementado en Python, con interfaz gráfica moderna (CustomTkinter) y patrones de diseño profesionales.
 
-## 📋 Características
+##  Características
 
 - ✅ Gestión centralizada de inventario (Patrón Singleton)
 - ✅ Creación dinámica de menú (Patrón Factory)
@@ -15,7 +15,7 @@ Sistema completo de gestión para restaurantes implementado en Python, con inter
 - ✅ Base de datos SQLAlchemy
 - ✅ Estadísticas y reportes
 
-## 🏗️ Arquitectura
+##  Arquitectura
 
 ### Patrones de Diseño
 
@@ -39,7 +39,7 @@ Sistema completo de gestión para restaurantes implementado en Python, con inter
    - Notificación de cambios en tiempo real
    - Desacoplamiento de componentes
 
-## 📁 Estructura de Archivos
+##  Estructura de Archivos
 
 ```
 ev2_progra2/
@@ -50,9 +50,9 @@ ev2_progra2/
 ├── Pedido.py                # Gestión de órdenes
 ├── ElementoMenu.py          # Elemento de menú
 ├── Ingrediente.py           # Componentes base
-├── error_handler.py         # Manejo centralizado de errores ⭐ NUEVO
-├── utilities.py             # Funciones de utilidad reutilizables ⭐ NUEVO
-├── cache_manager.py         # Sistema de caché con TTL ⭐ NUEVO
+├── error_handler.py         # Manejo centralizado de errores  NUEVO
+├── utilities.py             # Funciones de utilidad reutilizables  NUEVO
+├── cache_manager.py         # Sistema de caché con TTL  NUEVO
 ├── database.py              # Configuración de base de datos
 ├── models.py                # Modelos SQLAlchemy
 ├── crud.py                  # Operaciones CRUD
@@ -64,7 +64,7 @@ ev2_progra2/
 └── informe_latex/           # Presentación y documentación
 ```
 
-## 🚀 Instalación
+##  Instalación
 
 ### Requisitos
 - Python 3.8+
@@ -101,7 +101,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## 📖 Uso
+##  Uso
 
 ### Iniciar aplicación
 
@@ -133,9 +133,9 @@ python Restaurante.py
 3. Se crea PDF automáticamente
 4. Vista previa integrada
 
-## 🛠️ Nuevos Módulos (Mejoras)
+##  Nuevos Módulos (Mejoras)
 
-### 1️⃣ error_handler.py - Manejo de Errores
+### 1️ error_handler.py - Manejo de Errores
 Centraliza toda la validación y manejo de excepciones
 
 ```python
@@ -169,7 +169,7 @@ logger.error("Error procesando pedido", exc_info=True)
 - Logging automático a archivo y consola
 - Decorador para manejo transparente de errores
 
-### 2️⃣ utilities.py - Documentación y Utilidades
+### 2️ utilities.py - Documentación y Utilidades
 Módulo completamente documentado con funciones reutilizables
 
 ```python
@@ -203,7 +203,7 @@ nombre = UtilArchivos.obtener_nombre_archivo(ruta)
 - UtilArchivos: Operaciones con archivos
 - UtilValidacion: Validación de entrada
 
-### 5️⃣ cache_manager.py - Optimización de Performance
+### 5️ cache_manager.py - Optimización de Performance
 Sistema de caché thread-safe con TTL
 
 ```python
@@ -234,7 +234,7 @@ print(f"Tasa de acierto: {stats['tasa_acierto']}")  # 0.86 (86%)
 - Estadísticas de uso (hits, misses, tasa de acierto)
 - Limpieza automática de items expirados
 
-## 📊 Estadísticas
+##  Estadísticas
 
 El módulo `statistics_tab.py` proporciona:
 - Análisis de ventas
@@ -242,7 +242,7 @@ El módulo `statistics_tab.py` proporciona:
 - Ingresos por período
 - Tendencias de consumo
 
-## 🧪 Testing
+##  Testing
 
 ### Ejecutar tests
 
@@ -256,14 +256,14 @@ python -m pytest tests/ -v
 python -m pytest tests/ --cov=. --cov-report=html
 ```
 
-## 🔒 Seguridad
+##  Seguridad
 
 - Validación de entrada en todos los campos
 - Manejo thread-safe de operaciones críticas
 - Logging de operaciones importantes
 - Excepciones personalizadas y detalladas
 
-## 📈 Performance
+##  Performance
 
 - Sistema de caché con TTL (Time To Live)
 - Queries optimizadas en base de datos
@@ -277,7 +277,7 @@ Ejemplo de impacto:
 # Tasa de acierto típica: 85-90%
 ```
 
-## 🐛 Debugging
+##  Debugging
 
 ### Habilitar logs detallados
 
@@ -292,7 +292,7 @@ logger.warning("Advertencia")
 logger.error("Error crítico")
 ```
 
-## 📝 Git Workflow
+##  Git Workflow
 
 ```bash
 # Crear rama para mejoras
@@ -306,7 +306,7 @@ git commit -m "Agrego validación, documentación y caché"
 git push origin feature/mejoras-codigo
 ```
 
-## 🤝 Contribuciones
+##  Contribuciones
 
 1. Fork del proyecto
 2. Crear rama: `git checkout -b feature/AmazingFeature`
@@ -314,11 +314,11 @@ git push origin feature/mejoras-codigo
 4. Push: `git push origin feature/AmazingFeature`
 5. Pull Request
 
-## 📄 Licencia
+##  Licencia
 
 Este proyecto es parte de la evaluación de Programación II en la Universidad Católica de Temuco.
 
-## ✍️ Autores
+##  Autores
 
 - **Joaquín Burgos**
 - **Benjamín Cabrera**
@@ -328,7 +328,7 @@ Este proyecto es parte de la evaluación de Programación II en la Universidad C
 **Asignatura:** Programación II  
 **Institución:** Universidad Católica de Temuco
 
-## 📞 Soporte
+##  Soporte
 
 Para reportar bugs o sugerencias, abre un issue en GitHub.
 
@@ -336,7 +336,7 @@ Para reportar bugs o sugerencias, abre un issue en GitHub.
 
 **Última actualización:** Noviembre 2025  
 **Versión:** 2.0  
-**Estado:** En desarrollo - Mejoras implementadas ⭐Para ejecutar el programa:
+**Estado:** En desarrollo - Mejoras implementadas Para ejecutar el programa:
 ```bash
 python Restaurante.py
 ```
