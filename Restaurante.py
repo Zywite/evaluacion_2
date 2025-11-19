@@ -26,7 +26,6 @@ from error_handler import (
     ValidadorNombre,         # Validador de nombres (Template Method)
 )
 from reportes import generar_reporte  # Generador de reportes (JSON, CSV, HTML)
-import subprocess  # Para abrir archivos
 #importamos todo lo que sea necesario
 
 class AplicacionConPestanas(ctk.CTk): # se crea la clase de la aplicacion para las ventanas
