@@ -68,27 +68,43 @@ ev2_progra2/
 
 ### Requisitos
 - Python 3.8+
+- PostgreSQL 12+
 - pip
 
-### Dependencias
+### Instalación Rápida (Automática)
 
+**Windows:**
 ```bash
-pip install customtkinter
-pip install pandas
-pip install pillow
-pip install sqlalchemy
-pip install reportlab
-pip install pymupdf
+# Doble clic en setup.bat
+# O desde terminal:
+setup.bat
 ```
 
-### Instalación rápida
-
+**Linux/Mac:**
 ```bash
-# Clonar repositorio
+chmod +x setup.sh
+./setup.sh
+```
+
+El script automáticamente:
+- ✅ Crea el entorno virtual
+- ✅ Instala todas las dependencias
+- ✅ Verifica PostgreSQL
+- ✅ Crea usuario y base de datos
+- ✅ Inicializa las tablas con datos
+
+---
+
+### Instalación Manual paso a paso
+
+#### 1. Clonar repositorio
+```bash
 git clone https://github.com/Zywite/evaluacion_2.git
 cd ev2_progra2
+```
 
-# Crear entorno virtual
+#### 2. Crear entorno virtual
+```bash
 python -m venv .venv
 
 # Activar entorno
@@ -96,10 +112,58 @@ python -m venv .venv
 .venv\Scripts\activate
 # Linux/Mac:
 source .venv/bin/activate
+```
 
-# Instalar dependencias
+#### 3. Instalar dependencias
+```bash
 pip install -r requirements.txt
 ```
+
+#### 4. Configurar Base de Datos PostgreSQL
+
+**Requisitos previos:**
+- PostgreSQL 12+ instalado y corriendo
+- Acceso de administrador a PostgreSQL
+
+**Crear usuario y base de datos:**
+```bash
+# Abrir consola de PostgreSQL (Windows)
+psql -U postgres
+
+# En la consola de psql, ejecutar:
+CREATE USER joaquin WITH PASSWORD 'saki7089';
+CREATE DATABASE restaurant_proyect OWNER joaquin;
+\q
+```
+
+**O usar pgAdmin (interfaz gráfica):**
+1. Abre pgAdmin
+2. Crea un nuevo servidor: localhost:5432
+3. Crea un nuevo usuario: `joaquin` con contraseña `saki7089`
+4. Crea una nueva BD: `restaurant_proyect` con propietario `joaquin`
+
+#### 5. Configurar variables de entorno
+
+```bash
+# Copiar archivo de ejemplo
+cp .env.example .env
+
+# Editar .env según tu configuración (opcional si usas los valores por defecto)
+# DB_USER=joaquin
+# DB_PASSWORD=saki7089
+# DB_HOST=localhost
+# DB_PORT=5432
+# DB_NAME=restaurant_proyect
+```
+
+#### 6. Inicializar la base de datos
+
+```bash
+# Esto creará todas las tablas y poblará datos iniciales
+python init_db.py
+```
+
+**Nota:** Este script eliminará todos los datos existentes. Se te pedirá confirmación.
 
 ## 📖 Uso
 
@@ -292,7 +356,57 @@ logger.warning("Advertencia")
 logger.error("Error crítico")
 ```
 
-## 📝 Git Workflow
+## � Troubleshooting (Solución de Problemas)
+
+### Error: "could not connect to server: Connection refused"
+**Problema:** PostgreSQL no está corriendo
+```bash
+# Windows: Iniciar servicio PostgreSQL
+net start postgresql-x64-15
+# o desde Services (Servicios) del sistema operativo
+
+# Linux:
+sudo systemctl start postgresql
+
+# Mac:
+brew services start postgresql
+```
+
+### Error: "FATAL: Ident authentication failed for user 'joaquin'"
+**Problema:** Usuario o contraseña incorrectos
+```bash
+# Verificar que el usuario existe:
+psql -U postgres -c "SELECT usename FROM pg_user;"
+
+# Si no existe, crearlo de nuevo:
+psql -U postgres
+CREATE USER joaquin WITH PASSWORD 'saki7089';
+```
+
+### Error: "Database 'restaurant_proyect' does not exist"
+**Problema:** La base de datos no fue creada
+```bash
+# Crear la BD:
+psql -U postgres
+CREATE DATABASE restaurant_proyect OWNER joaquin;
+```
+
+### Error: "Import error: No module named 'dotenv'"
+**Problema:** Falta instalar dependencias
+```bash
+# Reinstalar dependencias
+pip install -r requirements.txt
+```
+
+### Error: "No such file or directory: 'init_db.py'"
+**Problema:** No estás en la carpeta correcta del proyecto
+```bash
+# Asegúrate de estar en la raíz del proyecto
+cd c:\Users\joaqu\Desktop\ev2_progra2
+python init_db.py
+```
+
+## �📝 Git Workflow
 
 ```bash
 # Crear rama para mejoras

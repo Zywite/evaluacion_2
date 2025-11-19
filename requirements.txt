@@ -3,8 +3,7 @@ Pillow>=10.0.0
 PyMuPDF>=1.23.0  # para el visor de PDF
 pandas>=2.1.0    # para manejo de CSV
 CTkMessagebox>=2.5  # para diálogos modernos
-fpdf>=1.7.2     # para generación de PDFs
-dataclasses    # incluido en Python 3.7+
-typing         # incluido en Python 3.7+
+reportlab>=4.0.0  # para generación de PDFs
 SQLAlchemy>=2.0.0
 psycopg2-binary>=2.9.0
+python-dotenv>=1.0.0  # para variables de entorno
