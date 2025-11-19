@@ -17,7 +17,7 @@ resultado = reduce(función_acumulativa, iterable, valor_inicial)
 
 ---
 
-## 📊 Ejemplo Visual
+##  Ejemplo Visual
 
 ```
 Secuencia: [1, 2, 3, 4, 5]
